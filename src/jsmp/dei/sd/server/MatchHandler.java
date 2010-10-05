@@ -81,7 +81,7 @@ public class MatchHandler extends Thread{
 					for(Bet bet : wonBets) {
 						if (bet.getSubmitter().equalsIgnoreCase(conn.getUserLogin())) {
 							try {
-								conn.out.writeObject(new ServerMessage("won", "You have won bet on " + bet.getGame_id()));
+								conn.out.writeObject(new ServerMessage("won", "Round {" + bet.getRound() + "}: bet WON on game " + bet.getGame_id()));
 							} catch (IOException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();

@@ -175,7 +175,7 @@ public class Database extends Thread{
 			e.printStackTrace();
 		}
 		
-		System.out.println("ROUND "+round+" results");
+		System.out.println("ROUND "+round+" winners");
 		for (Matches m : matches) {
 			
 			try {
@@ -195,9 +195,10 @@ public class Database extends Thread{
 						
 							// Add to wonBets vector
 							Bet won = new Bet(b.getSubmitter(), b.getGame_id(), b.getAmount()*3);
+							won.setRound(m.getRound());
 							wonBets.add(won);
 						
-							System.out.println(b.getSubmitter() + " on game " + m.getCode() + " RES: "+ m.getResult());
+							System.out.println(b.getSubmitter() + " on Round " + m.getRound() + ", game " + m.getCode() + " RES: "+ m.getResult());
 						}
 					}
 				}

@@ -6,6 +6,7 @@ public class Bet {
 	
 	private String submitter;
 	private int game_id;
+	private int round;
 	private Result bet;
 	private int amount;
 	private boolean won  = false;
@@ -75,6 +76,14 @@ public class Bet {
 		case 2: res = Result.AWAY; break;
 		}
 		return res;
+	}
+
+	public void setRound(int round) {
+		this.round = round;
+	}
+
+	public int getRound() {
+		return round;
 	}
 
 }
