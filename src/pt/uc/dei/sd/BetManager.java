@@ -12,6 +12,11 @@ public class BetManager implements IBetManager {
         refreshMatches();
     }
     
+    public BetManager(int size) {
+    	this.size = size;
+    	refreshMatches();
+    }
+    
     public List<IMatch> getMatches() {
         return matches;
     }
