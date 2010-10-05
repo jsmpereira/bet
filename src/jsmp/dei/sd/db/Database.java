@@ -5,6 +5,7 @@ import java.util.Vector;
 
 import pt.uc.dei.sd.BetManager;
 import pt.uc.dei.sd.IMatch;
+import pt.uc.dei.sd.Match;
 
 import jsmp.dei.sd.utils.Bet;
 import jsmp.dei.sd.utils.Utils;
@@ -114,6 +115,23 @@ public class Database extends Thread{
 			onlineUsers.add(new User(user.getLogin()));
 		
 		return onlineUsers;
+	}
+	
+	public Vector<IMatch> doGetMatches() {
+		Matches[] matches = null;
+		Vector<IMatch> current_matches = new Vector<IMatch>();
+		
+		try {
+			matches = manager.findWithSQL(Matches.class, "id", "SELECT id FROM matches WHERE round = (SELECT max(round) from matches)");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		for(Matches m : matches)
+			current_matches.add(new Match(m.getCode(), m.getHome(), m.getAway()));
+		
+		return current_matches;
 	}
 	
 	public void doCreateMatches(BetManager man, int round) {

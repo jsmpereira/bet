@@ -6,6 +6,9 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Vector;
 
+import pt.uc.dei.sd.IMatch;
+import pt.uc.dei.sd.Match;
+
 import jsmp.dei.sd.db.Database;
 import jsmp.dei.sd.utils.*;
 import jsmp.dei.sd.utils.Utils.Commands;
@@ -103,8 +106,9 @@ public class ServerConnection extends Thread {
 				break;
 			}
 			case MATCHES: {
+				Vector<IMatch> matches = db.doGetMatches();
 				out.reset(); // to go around object caching. Reseting the stream all might not be the best practice.
-				out.writeObject(new ServerMessage(name, matchHandler.getMatches())); break;
+				out.writeObject(new ServerMessage(name, matches)); break;
 			}
 			case WHO: {
 				Vector<User> onlineUsers = db.doGetOnlineUsers();
