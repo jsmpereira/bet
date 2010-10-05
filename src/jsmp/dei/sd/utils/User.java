@@ -18,6 +18,10 @@ public class User implements Serializable{
 		this.login = login;
 		this.setLoggedin(loggedin);
 	}
+	
+	public User(String login) {
+		this.login = login;
+	}
 
 	public void setLogin(String login) {
 		this.login = login;

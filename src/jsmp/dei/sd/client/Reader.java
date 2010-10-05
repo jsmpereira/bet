@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
+import java.util.Vector;
 
 import pt.uc.dei.sd.IMatch;
 
@@ -68,7 +69,20 @@ public class Reader extends Thread {
 				}
 				break;	
 			}
-			case BET: break; // NOOP 
+			case BET: break; // NOOP
+			case WHO: {
+				Vector<User> onlineUsers = (Vector<User>) message.getPayload();
+				
+				if (onlineUsers.size() != 0) {
+					System.out.println("Online Users");
+					for (User user : onlineUsers) {
+						System.out.print(user.getLogin());
+						if (user.getLogin().equalsIgnoreCase(client.getUser().getLogin()))
+							System.out.println("(this is you)");
+					}
+				}
+				break;
+			}
 			case MATCHES: {
 				/* When server notifies the clients of new matches this case
 				 * gets hit, but there's no payload.

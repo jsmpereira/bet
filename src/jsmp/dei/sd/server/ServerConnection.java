@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Vector;
+
 import jsmp.dei.sd.db.Database;
 import jsmp.dei.sd.utils.*;
 import jsmp.dei.sd.utils.Utils.Commands;
@@ -80,7 +82,7 @@ public class ServerConnection extends Thread {
 				User user = db.doLogin(aMessage.getLogin(), aMessage.getPassword());
 				 
 				if (user != null) {
-					out.writeObject(new ServerMessage(name, MessageCode.OK, "Login Successful.", user));
+					out.writeObject(new ServerMessage(name, MessageCode.OK, "Login Successful.", user)); // might need out.reset()
 					user_login = user.getLogin();
 				} else
 					out.writeObject(new ServerMessage(name, MessageCode.FAIL, "Wrong login/password combination."));
@@ -103,6 +105,11 @@ public class ServerConnection extends Thread {
 			case MATCHES: {
 				out.reset(); // to go around object caching. Reseting the stream all might not be the best practice.
 				out.writeObject(new ServerMessage(name, matchHandler.getMatches())); break;
+			}
+			case WHO: {
+				Vector<User> onlineUsers = db.doGetOnlineUsers();
+				out.reset();
+				out.writeObject(new ServerMessage(name, onlineUsers)); break;
 			}
 			case LOGOUT: {
 				if(db.doLogout(aMessage.getLogin())) {

@@ -60,6 +60,7 @@ public class CLI extends Thread{
 				case RESET: optionResetCredits(option); break;
 				case MATCHES: optionMatches(option); break;
 				case BET: optionBet(option); break;
+				case WHO: optionWho(option); break;
 				case REGISTER: optionRegister(option); break;
 				default: { 
 					System.out.println(option + ": command not found");
@@ -96,6 +97,10 @@ public class CLI extends Thread{
 	}
 	
 	private void optionCredits(String option) throws IOException {
+		out.writeObject(new ClientMessage(option, client.getUser().getLogin()));
+	}
+	
+	private void optionWho(String option) throws IOException {
 		out.writeObject(new ClientMessage(option, client.getUser().getLogin()));
 	}
 	

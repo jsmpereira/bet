@@ -99,6 +99,23 @@ public class Database extends Thread{
 		return user.getCredits();
 	}
 	
+	public Vector<User> doGetOnlineUsers() {
+		Users[] users = null;
+		Vector<User> onlineUsers = new Vector<User>();
+		try {
+			users = manager.find(Users.class, "logged_in = ?", true);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// We do this conversion so that Database Entity Users class is not exposed to the client
+		for(Users user : users)
+			onlineUsers.add(new User(user.getLogin()));
+		
+		return onlineUsers;
+	}
+	
 	public void doCreateMatches(BetManager man, int round) {
 				
 		for (IMatch m : man.getMatches()) {

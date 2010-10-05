@@ -6,7 +6,7 @@ import java.util.Calendar;
 public class Utils {
 	
 	public static enum Commands {
-		HELP, REGISTER, LOGIN, LOGOUT, CREDITS, MATCHES, RESET, BET, NIL;
+		HELP, REGISTER, LOGIN, LOGOUT, CREDITS, MATCHES, RESET, BET, WHO, NIL;
 		
 		public static Commands toOption(String str){
 			try {
