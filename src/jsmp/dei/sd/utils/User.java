@@ -1,11 +1,22 @@
-package jsmp.dei.sd;
+package jsmp.dei.sd.utils;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable{
 	
-	User(String login, String email, String password) {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	public User(String login, String email, String password) {
 		this.login = login;
 		this.email = email;
 		this.password = password;
+	}
+	
+	public User(String login, boolean loggedin) {
+		this.login = login;
+		this.setLoggedin(loggedin);
 	}
 
 	public void setLogin(String login) {
@@ -39,9 +50,25 @@ public class User {
 	public int getCredits() {
 		return credits;
 	}
+	
+	public void setLoggedin(boolean loggedin) {
+		this.loggedin = loggedin;
+	}
+
+	public boolean isLoggedin() {
+		return loggedin;
+	}
+	
+	public String toString() {
+		
+		return "Login: " + login +
+				"\n Email: " + email +
+				"\n Password: " + password;
+	}
 
 	private String login;
 	private String email;
 	private String password;
 	private int credits = 100; // this should be read from config file
+	private boolean loggedin = false;
 }
