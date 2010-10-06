@@ -1,23 +1,28 @@
 package jsmp.dei.sd.utils;
 
+import java.io.Serializable;
+
+import pt.uc.dei.sd.Match;
 import pt.uc.dei.sd.Result;
 
-public class Bet {
+public class Bet implements Serializable {
 	
-	private String submitter;
-	private int game_id;
-	private int round;
+	private static final long serialVersionUID = 1L;
+	private User submitter;
 	private Result bet;
 	private int amount;
+	private int game_id;
+	private Match match;
+	private int round;
 	private boolean won  = false;
 	
-	public Bet(String submitter, int game_id, int amount) {
+	public Bet(User submitter, int game_id, int amount) {
 		this.submitter = submitter;
 		this.game_id = game_id;
 		this.amount = amount;
 	}
 	
-	public Bet(String submitter, int game_id, int bet, int amount) {
+	public Bet(User submitter, int game_id, int bet, int amount) {
 		this.submitter = submitter;
 		this.game_id = game_id;
 		this.bet = parseBet(bet);
@@ -40,11 +45,11 @@ public class Bet {
 		return bet;
 	}
 
-	public void setSubmitter(String submitter) {
+	public void setSubmitter(User submitter) {
 		this.submitter = submitter;
 	}
 
-	public String getSubmitter() {
+	public User getSubmitter() {
 		return submitter;
 	}
 
@@ -84,6 +89,14 @@ public class Bet {
 
 	public int getRound() {
 		return round;
+	}
+
+	public void setMatch(Match match) {
+		this.match = match;
+	}
+
+	public Match getMatch() {
+		return match;
 	}
 
 }

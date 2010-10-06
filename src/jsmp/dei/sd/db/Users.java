@@ -7,6 +7,10 @@ public interface Users extends Entity{
 	public void setLogin(String login);
 	
 	public String getLogin();
+	
+	public void setScid(String scid);
+	
+	public String getScid();
 
 	public void setEmail(String email);
 

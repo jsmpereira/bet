@@ -28,6 +28,6 @@ public class Match implements IMatch, Serializable {
     }
     
     public String toString() {
-        return String.format("%s vs %s", home, away);
+        return String.format("[%d] %s vs %s", code, home, away);
     }
 }

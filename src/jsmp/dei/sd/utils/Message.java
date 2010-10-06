@@ -13,9 +13,15 @@ public class Message implements Serializable {
 	private String name;
 	private MessageCode code;
 	private Object payload;
+	private String scid;
 	
 	public Message(String name) {
 		this.name = name;
+	}
+	
+	public Message(String name, String scid) {
+		this.name = name;
+		this.scid = scid;
 	}
 	
 	public Message(String name, MessageCode code) {
@@ -56,6 +62,14 @@ public class Message implements Serializable {
 
 	public Object getPayload() {
 		return payload;
+	}
+
+	public void setScid(String scid) {
+		this.scid = scid;
+	}
+
+	public String getScid() {
+		return scid;
 	}
 	
 }

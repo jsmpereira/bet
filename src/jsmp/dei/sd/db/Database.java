@@ -31,43 +31,45 @@ public class Database extends Thread{
 		this.start();
 	}
 	
-	public void doRegister(String login, String email, String password) {
-		Users user = null;
+	public void doRegister(User user) {
+		Users dbuser = null;
 		
-		if (userExists(login)) {
+		if (userExists(user.getLogin())) {
 			System.out.println("Login name already taken");
 		} else {
 			try {
-				user= manager.create(Users.class);
+				dbuser= manager.create(Users.class);
 			} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			}
-			user.setLogin(login);
-			user.setEmail(email);
-			user.setPassword(password);
-			user.setCredits(100);
-			user.setLogged_in(false);
-			user.save();
+			dbuser.setLogin(user.getLogin());
+			dbuser.setEmail(user.getEmail());
+			dbuser.setPassword(user.getPassword());
+			dbuser.setCredits(100); // TODO should read from config
+			dbuser.setLogged_in(false);
+			dbuser.save();
 		
-			System.out.println("Created: " + user.toString());
+			System.out.println("Created: " + dbuser.toString());
 		}
 	}
 	
-	public User doLogin(String login, String password) {
+	public User doLogin(User user, String scid) {
 		Users[] users = null;
-		User user = null;
 		try {
-			users = manager.find(Users.class, "login = ? AND password = ?", login, password);
+			users = manager.find(Users.class, "login = ? AND password = ?", user.getLogin(), user.getPassword());
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+						
 		if (users.length == 1) {
 			users[0].setLogged_in(true);
+			users[0].setScid(scid);
 			users[0].save();
-			user = new User(users[0].getLogin(), users[0].isLogged_in());
+			
+			user.setLoggedin(users[0].isLogged_in());
+			user.setScid(scid);
 		}
 		return user;
 	}
@@ -111,8 +113,11 @@ public class Database extends Thread{
 		}
 		
 		// We do this conversion so that Database Entity Users class is not exposed to the client
-		for(Users user : users)
-			onlineUsers.add(new User(user.getLogin()));
+		for(Users user : users) {
+			User on = new User(user.getLogin());
+			on.setScid(user.getScid());
+			onlineUsers.add(on);
+		}
 		
 		return onlineUsers;
 	}
@@ -158,14 +163,14 @@ public class Database extends Thread{
 	public void doCreateBet(Bet bet) {
 		try {
 			manager.create(Bets.class,
-					new DBParam("submitter", bet.getSubmitter()),
+					new DBParam("submitter", bet.getSubmitter().getLogin()),
 					new DBParam("game_id", bet.getGame_id()),
 					new DBParam("bet", bet.getBet().toString()),
 					new DBParam("amount", bet.getAmount()),
 					new DBParam("won", bet.isWon()));
 			
 			// update users credits
-			Users user = findByLogin(bet.getSubmitter());
+			Users user = findByLogin(bet.getSubmitter().getLogin());
 			user.setCredits(user.getCredits() - 
 					bet.getAmount());
 			user.save();
@@ -193,7 +198,7 @@ public class Database extends Thread{
 			e.printStackTrace();
 		}
 		
-		System.out.println("ROUND "+round+" winners");
+		System.out.println("Round {" + round + "} results");
 		for (Matches m : matches) {
 			
 			try {
@@ -202,7 +207,7 @@ public class Database extends Thread{
 				for(Bets b : bets) {
 				
 					if (m.getCode() == b.getGame_id()) {
-						if(m.getResult().equalsIgnoreCase(b.getBet())) {
+						if (m.getResult().equalsIgnoreCase(b.getBet())) {
 							b.setWon(true);
 							b.save();
 					
@@ -212,11 +217,17 @@ public class Database extends Thread{
 							user.save();
 						
 							// Add to wonBets vector
-							Bet won = new Bet(b.getSubmitter(), b.getGame_id(), b.getAmount()*3);
+							User submitter = new User(user.getLogin());
+							submitter.setScid(user.getScid());
+							
+							Bet won = new Bet(submitter, b.getGame_id(), b.getAmount()*3);
+							won.setMatch(new Match(b.getGame_id(), m.getHome(), m.getAway()));
 							won.setRound(m.getRound());
 							wonBets.add(won);
 						
-							System.out.println(b.getSubmitter() + " on Round " + m.getRound() + ", game " + m.getCode() + " RES: "+ m.getResult());
+							System.out.println("WON ~> " + b.getSubmitter() + " on Round " + m.getRound() + ", game " + m.getCode() + " RES: " + m.getResult());
+						} else {
+							System.out.println("LOST ~> " + b.getSubmitter() + " on Round " + m.getRound() + ", game " + m.getCode() + " RES: " + b.getBet() + "/" + m.getResult());
 						}
 					}
 				}

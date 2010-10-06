@@ -4,9 +4,6 @@ import java.io.Serializable;
 
 public class User implements Serializable{
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	public User(String login, String email, String password) {
 		this.login = login;
@@ -17,6 +14,11 @@ public class User implements Serializable{
 	public User(String login, boolean loggedin) {
 		this.login = login;
 		this.setLoggedin(loggedin);
+	}
+	
+	public User(String login, String password) {
+		this.login = login;
+		this.password = password;
 	}
 	
 	public User(String login) {
@@ -70,9 +72,18 @@ public class User implements Serializable{
 				"\n Password: " + password;
 	}
 
+	public void setScid(String scid) {
+		this.scid = scid;
+	}
+
+	public String getScid() {
+		return scid;
+	}
+
 	private String login;
 	private String email;
 	private String password;
 	private int credits = 100; // this should be read from config file
 	private boolean loggedin = false;
+	private String scid;
 }

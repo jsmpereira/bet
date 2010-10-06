@@ -3,22 +3,23 @@ package jsmp.dei.sd.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.UUID;
 
 import jsmp.dei.sd.db.Database;
+import jsmp.dei.sd.utils.Utils;
 
 public class Server {
 
-	protected static ArrayList<ServerConnection> clients;
+	protected static Hashtable<String, ServerConnection> clients;
 	protected static MatchHandler matchHandler;
 	private int serverPort;
 	private ServerSocket listenSocket;
 	protected Database db;
-	private int thread_id;
+	private UUID scid; // ServerConnection ID - to act as key on connections hash
 	
 	public Server() {
-		thread_id = 0;
-		clients = new ArrayList<ServerConnection>();
+		clients = new Hashtable<String, ServerConnection>();
 		db = new Database(); // start db thread
 		matchHandler = new MatchHandler(db, clients); // start handler, where periodic job resides
 	}
@@ -34,12 +35,13 @@ public class Server {
 			while(true) {
 				Socket clientSocket = listenSocket.accept();
 				System.out.println("CLIENT_SOCKET (created at accept())="+clientSocket);
-				thread_id++;
+				scid = Utils.generateUID();
+				System.out.println("New client connection: "+scid.toString());
 				synchronized (clients) {
-					ServerConnection conn = new ServerConnection(thread_id, db, matchHandler, clientSocket);
-					clients.add(conn);
+					ServerConnection conn = new ServerConnection(scid.toString(), db, matchHandler, clientSocket);
+					clients.put(scid.toString(), conn);
 				}
-				
+				scid = null; // reset				
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

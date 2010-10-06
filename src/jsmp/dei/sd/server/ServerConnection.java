@@ -7,8 +7,6 @@ import java.net.Socket;
 import java.util.Vector;
 
 import pt.uc.dei.sd.IMatch;
-import pt.uc.dei.sd.Match;
-
 import jsmp.dei.sd.db.Database;
 import jsmp.dei.sd.utils.*;
 import jsmp.dei.sd.utils.Utils.Commands;
@@ -20,11 +18,11 @@ public class ServerConnection extends Thread {
     Socket clientSocket;
     Database db;
     MatchHandler matchHandler;
-    int thread_id;
+    String scid;
     String user_login;
 	
-	public ServerConnection(int thread_id, Database db, MatchHandler matchHandler, Socket clientSocket) {
-		this.thread_id = thread_id;
+	public ServerConnection(String scid, Database db, MatchHandler matchHandler, Socket clientSocket) {
+		this.scid = scid;
 		this.matchHandler = matchHandler;
 		this.clientSocket = clientSocket;
 		this.db = db;	
@@ -36,7 +34,7 @@ public class ServerConnection extends Thread {
 		this.start();
 	}
 	
-	public int getThreadId() { return thread_id; }
+	public String getSCID() { return scid; }
 	public String getUserLogin() { return user_login; }
 	
 	public void run() {
@@ -55,6 +53,11 @@ public class ServerConnection extends Thread {
 			try {
 				message = (Message) in.readObject();
 				
+				/*
+				 *  TODO validate serverConnectioID sent by the client,
+				 *  needs to be the same as ServerConnection 
+				 */
+
 				parseMessage(message);
 				
 			} catch (Exception e) {
@@ -76,32 +79,32 @@ public class ServerConnection extends Thread {
 		String name = aMessage.getName();
 		
 		System.out.print(Utils.timeNow() + " ["+this.getName()+"]");
-		if (aMessage.getLogin() != null)
-			System.out.print(" ~> " + aMessage.getLogin() + " ");
+		if (aMessage.getUser() != null && aMessage.getUser().getLogin() != null)
+			System.out.print(" ~> " + aMessage.getUser().getLogin() + " ");
 		System.out.println("requested ~> " + aMessage.getName());
 			
 		switch(Commands.toOption(name.toUpperCase())) {
 			case LOGIN: {
-				User user = db.doLogin(aMessage.getLogin(), aMessage.getPassword());
-				 
+				User user = db.doLogin(aMessage.getUser(), scid);
 				if (user != null) {
+					out.reset();
 					out.writeObject(new ServerMessage(name, MessageCode.OK, "Login Successful.", user)); // might need out.reset()
 					user_login = user.getLogin();
 				} else
 					out.writeObject(new ServerMessage(name, MessageCode.FAIL, "Wrong login/password combination."));
 				break;
 			}
-			case REGISTER: db.doRegister(aMessage.getLogin(), aMessage.getEmail(), aMessage.getPassword()); break;
+			case REGISTER: db.doRegister(aMessage.getUser()); break;
 			case CREDITS: {
-				out.writeObject(new ServerMessage(name, MessageCode.OK, "You have " + db.doGetCredits(aMessage.getLogin()) + " credits."));
+				out.writeObject(new ServerMessage(name, MessageCode.OK, "You have " + db.doGetCredits(aMessage.getUser().getLogin()) + " credits."));
 				break;
 			}
 			case RESET: {
-				out.writeObject(new ServerMessage(name, MessageCode.OK, "Credits reset. You have " + db.doUpdateCredits(aMessage.getLogin()) + " credits."));
+				out.writeObject(new ServerMessage(name, MessageCode.OK, "Credits reset. You have " + db.doUpdateCredits(aMessage.getUser().getLogin()) + " credits."));
 				break;
 			}
 			case BET: {
-				matchHandler.addBet(new Bet(aMessage.getLogin(), aMessage.getGame_id(), aMessage.getBet(), aMessage.getAmount()));
+				db.doCreateBet(aMessage.getBet());
 				out.writeObject(new ServerMessage(name, MessageCode.OK, "Bet submitted."));
 				break;
 			}
@@ -116,7 +119,7 @@ public class ServerConnection extends Thread {
 				out.writeObject(new ServerMessage(name, onlineUsers)); break;
 			}
 			case LOGOUT: {
-				if(db.doLogout(aMessage.getLogin())) {
+				if(db.doLogout(aMessage.getUser().getLogin())) {
 					out.writeObject(new ServerMessage(name, MessageCode.OK, "Logout Successful."));
 				}
 			}

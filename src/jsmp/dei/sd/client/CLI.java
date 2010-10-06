@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 
+import jsmp.dei.sd.utils.Bet;
 import jsmp.dei.sd.utils.ClientMessage;
+import jsmp.dei.sd.utils.User;
 import jsmp.dei.sd.utils.Utils.Commands;
 
 public class CLI extends Thread{
@@ -80,11 +82,13 @@ public class CLI extends Thread{
 		System.out.print("game id: ");
 		int gameId = Integer.parseInt(reader.readLine().trim());
 		System.out.print("bet [0] tie [1] home [2] away: ");
-		int bet = Integer.parseInt(reader.readLine().trim());
+		int hunch = Integer.parseInt(reader.readLine().trim());
 		System.out.print("amount: ");
 		int amount = Integer.parseInt(reader.readLine().trim());
 		
-		out.writeObject(new ClientMessage(option, client.getUser().getLogin(), gameId, bet, amount));
+		Bet bet = new Bet(client.getUser(), gameId, hunch, amount);
+		
+		out.writeObject(new ClientMessage(option, bet, client.getUser().getScid()));
 	}
 	
 	/**
@@ -93,15 +97,15 @@ public class CLI extends Thread{
 	 * 
 	 */
 	private void optionResetCredits(String option) throws IOException {
-		out.writeObject(new ClientMessage(option, client.getUser().getLogin()));
+		out.writeObject(new ClientMessage(option, new User(client.getUser().getLogin())));
 	}
 	
 	private void optionCredits(String option) throws IOException {
-		out.writeObject(new ClientMessage(option, client.getUser().getLogin()));
+		out.writeObject(new ClientMessage(option, new User(client.getUser().getLogin())));
 	}
 	
 	private void optionWho(String option) throws IOException {
-		out.writeObject(new ClientMessage(option, client.getUser().getLogin()));
+		out.writeObject(new ClientMessage(option, new User(client.getUser().getLogin())));
 	}
 	
 	
@@ -112,11 +116,11 @@ public class CLI extends Thread{
 		System.out.println("password: ");
 		String password = reader.readLine();
 	
-		out.writeObject(new ClientMessage(option, login, password));
+		out.writeObject(new ClientMessage(option, new User(login, password)));
 	}
 	
 	private void optionLogout(String option) throws IOException {
-		out.writeObject(new ClientMessage(option, client.getUser().getLogin()));
+		out.writeObject(new ClientMessage(option, new User(client.getUser().getLogin())));
 	}
 	
 	private void optionRegister(String option) throws IOException {
@@ -127,7 +131,7 @@ public class CLI extends Thread{
 		System.out.println("password: ");
 		String password = reader.readLine();
 	
-		out.writeObject(new ClientMessage(option, login, email, password));
+		out.writeObject(new ClientMessage(option, new User(login, email, password)));
 	}
 	
 	private void optionMatches(String option) throws IOException {

@@ -2,6 +2,7 @@ package jsmp.dei.sd.utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.UUID;
 
 public class Utils {
 	
@@ -29,5 +30,8 @@ public class Utils {
 		SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
 		return sdf.format(cal.getTime());
 	}
-
+	
+	public static UUID generateUID() {
+		return UUID.randomUUID();
+	}
 }

@@ -6,7 +6,7 @@ import java.util.List;
 public class BetManager implements IBetManager {
     private ArrayList<IMatch> matches = new ArrayList<IMatch>();
     private BetGenerator gen = new BetGenerator();
-    private int size = 8;
+    private int size = 8; // read from config
     
     public BetManager() {
         refreshMatches();
