@@ -11,6 +11,8 @@ public class ClientMessage extends Message {
 
 	private static final long serialVersionUID = 1L;
 	private User user;
+	private User recipient;
+	private String message;
 	private int game_id;
 	private Bet bet;
 	private int amount;
@@ -26,6 +28,13 @@ public class ClientMessage extends Message {
 	public ClientMessage(String command, User user) {
 		super(command);
 		this.setUser(user);
+	}
+	
+	public ClientMessage(String command, User sender, User recipient, String message) {
+		super(command);
+		this.user = sender;
+		this.recipient = recipient;
+		this.message = message;
 	}
 	
 	
@@ -95,5 +104,21 @@ public class ClientMessage extends Message {
 
 	public User getUser() {
 		return user;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setRecipient(User recipient) {
+		this.recipient = recipient;
+	}
+
+	public User getRecipient() {
+		return recipient;
 	}
 }

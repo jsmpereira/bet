@@ -8,6 +8,7 @@ import java.util.Vector;
 
 import pt.uc.dei.sd.IMatch;
 import jsmp.dei.sd.db.Database;
+import jsmp.dei.sd.db.Users;
 import jsmp.dei.sd.utils.*;
 import jsmp.dei.sd.utils.Utils.Commands;
 import jsmp.dei.sd.utils.Utils.MessageCode;
@@ -42,7 +43,7 @@ public class ServerConnection extends Thread {
 		Message message; // class to handle commands
 		
 		try {
-			out.writeObject(new ServerMessage("login", "Welcome."));
+			out.writeObject(new ServerMessage(MessageCode.NOTIFY, "Welcome."));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -54,8 +55,9 @@ public class ServerConnection extends Thread {
 				message = (Message) in.readObject();
 				
 				/*
-				 *  TODO validate serverConnectioID sent by the client,
-				 *  needs to be the same as ServerConnection 
+				 *  TODO validate serverConnectioID sent by the client
+				 *  (needs to be the same as ServerConnection) for requests 
+				 *  except login and register. 
 				 */
 
 				parseMessage(message);
@@ -110,7 +112,7 @@ public class ServerConnection extends Thread {
 			}
 			case MATCHES: {
 				Vector<IMatch> matches = db.doGetMatches();
-				out.reset(); // to go around object caching. Reseting the stream all might not be the best practice.
+				out.reset(); // to go around object caching. Reseting the stream all the time might not be the best practice.
 				out.writeObject(new ServerMessage(name, matches)); break;
 			}
 			case WHO: {
@@ -118,8 +120,31 @@ public class ServerConnection extends Thread {
 				out.reset();
 				out.writeObject(new ServerMessage(name, onlineUsers)); break;
 			}
+			case MESSAGE: {
+				Users user = db.findByLogin(aMessage.getRecipient().getLogin()); // TODO We probably don't want Users instance here, but User
+				ServerConnection co = matchHandler.getClients().get(user.getScid());
+				co.out.reset();
+				co.out.writeObject(new ServerMessage(name, MessageCode.MESSAGE, aMessage.getMessage(), aMessage.getUser())); break;
+			}
+			case BROADCAST: {
+				Vector<User> onlineUsers = db.doGetOnlineUsers();
+				ServerConnection co;
+				
+				for (User user : onlineUsers) {
+					co = matchHandler.getClients().get(user.getScid()); // TODO maybe raise exception to handle fake logins - scid was not renewed
+					try {
+						co.out.writeObject(new ServerMessage(name, MessageCode.BROADCAST, aMessage.getMessage(), aMessage.getUser()));
+						co.out.flush();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				break;
+			}
 			case LOGOUT: {
 				if(db.doLogout(aMessage.getUser().getLogin())) {
+					matchHandler.getClients().remove(aMessage.getUser().getScid()); // remove reference from clients list
 					out.writeObject(new ServerMessage(name, MessageCode.OK, "Logout Successful."));
 				}
 			}

@@ -63,6 +63,8 @@ public class CLI extends Thread{
 				case MATCHES: optionMatches(option); break;
 				case BET: optionBet(option); break;
 				case WHO: optionWho(option); break;
+				case MESSAGE: optionMessage(option, false); break;
+				case BROADCAST: optionMessage(option, true); break;
 				case REGISTER: optionRegister(option); break;
 				default: { 
 					System.out.println(option + ": command not found");
@@ -136,6 +138,21 @@ public class CLI extends Thread{
 	
 	private void optionMatches(String option) throws IOException {
 		out.writeObject(new ClientMessage(option, client.getUser().getLogin()));
+	}
+	
+	private void optionMessage(String option, boolean broadcast) throws IOException {
+		String target;
+
+		if (!broadcast) {
+			System.out.print("User to send: ");
+			target = reader.readLine();
+		} else {
+			target = "all";
+		}
+		System.out.print("Message: ");
+		String message = reader.readLine();
+				
+		out.writeObject(new ClientMessage(option, new User(client.getUser().getLogin()), new User(target), message));
 	}
 	
 	private void optionHelp() {

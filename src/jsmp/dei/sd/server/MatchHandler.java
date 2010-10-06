@@ -2,7 +2,6 @@ package jsmp.dei.sd.server;
 
 import java.io.IOException;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -14,7 +13,6 @@ import jsmp.dei.sd.utils.User;
 import jsmp.dei.sd.utils.Utils;
 
 import pt.uc.dei.sd.BetManager;
-import pt.uc.dei.sd.IMatch;
 
 public class MatchHandler extends Thread{
 
@@ -23,7 +21,7 @@ public class MatchHandler extends Thread{
 	private BetManager man;
 	private int seconds = 30; // should read from config
 	private Database db;
-	private int round = 1;
+	private int round = 1;	
 	
 	public MatchHandler(Database db, Hashtable<String, ServerConnection> clients) {
 		this.clients = clients;
@@ -51,10 +49,6 @@ public class MatchHandler extends Thread{
 			round++;
 		}
     }
-		
-	public List<IMatch> getMatches() {
-		return man.getMatches();
-	}
 	
 	/**
 	 * Notifies online users of new round
@@ -91,5 +85,19 @@ public class MatchHandler extends Thread{
 				}
 			}					
 		}
+	}
+	
+	/**
+	 * TODO
+	 * This seems like a code smell
+	 * MatchHandler is created in Server and passed the clients hash
+	 * ServerConnection is created in Server and is passed MatchHandler.
+	 * 
+	 * Should ServerConnection get clients hash from MatchHandler or should
+	 * Server pass it upon creation?
+	 * @return
+	 */
+	public Hashtable<String, ServerConnection> getClients() {
+		return this.clients;
 	}
 }

@@ -52,56 +52,72 @@ public class Reader extends Thread {
 	
 	@SuppressWarnings("unchecked")
 	private void parseMessages(ServerMessage message) {
-		if (message.getMessage() != null)
+		if (message.getCode() == MessageCode.NOTIFY)
 			System.out.println("\n\n\t\t\t\t\t\t FROM SERVER: " + message.getMessage());
-		
-		switch(Commands.toOption(message.getName().toUpperCase())) {
+		else {
+			switch(Commands.toOption(message.getName().toUpperCase())) {
 			
-			case LOGIN: {
-				if (message.getCode() == MessageCode.OK) {
-					client.setUser((User) message.getPayload());
-				}
-				break;
-			}
-			case LOGOUT: {
-				if (message.getCode() == MessageCode.OK) {
-					client.setUser(null);
-				}
-				break;	
-			}
-			case BET: break; // NOOP
-			case WHO: {
-				Vector<User> onlineUsers = (Vector<User>) message.getPayload();
-				
-				if (onlineUsers.size() != 0) {
-					System.out.println("Online Users");
-					for (User user : onlineUsers) {
-						System.out.print(user.getLogin());
-						if (user.getLogin().equalsIgnoreCase(client.getUser().getLogin()))
-							System.out.println("(this is you)");
+				case LOGIN: {
+					if (message.getCode() == MessageCode.OK) {
+						client.setUser((User) message.getPayload());					
 					}
+					System.out.println("\n\n\t\t\t\t\t\t FROM SERVER: " + message.getMessage());
+					break;
 				}
-				break;
-			}
-			case MATCHES: {
-				/* When server notifies the clients of new matches this case
-				 * gets hit, but there's no payload.
-				 * 
-				 * Payload could be set and and sent along with with the notify message.
-				 * Client would set a local variable with the payload.
-				 * _matches_ command would read that local variable and not hit the server everytime time.
-				 * 
-				 * *** TO CONSIDER ***
-				 */
-				
-				if (message.getPayload() != null) {
-					for (IMatch m : (List<IMatch>) message.getPayload()) {
-						System.out.println("["+ m.getCode() + "] " + m.getHomeTeam() + " vs " + m.getAwayTeam());
+				case LOGOUT: {
+					if (message.getCode() == MessageCode.OK) {
+						client.setUser(null);
 					}
+					System.out.println("\n\n\t\t\t\t\t\t FROM SERVER: " + message.getMessage());
+					break;	
 				}
-				break;
+				case BET: break; // NOOP
+				case WHO: {
+					Vector<User> onlineUsers = (Vector<User>) message.getPayload();
+				
+					if (onlineUsers.size() != 0) {
+						System.out.println("Online Users");
+						for (User user : onlineUsers) {
+							System.out.print(user.getLogin());
+							if (user.getLogin().equalsIgnoreCase(client.getUser().getLogin()))
+								System.out.println("(this is you)");
+						}
+					}
+					break;
+				}
+				case MESSAGE: {
+					User user = (User) message.getPayload();
+					String msg = message.getMessage();
+					System.out.println("\n\n\t\t\t\t\t\t Private Message from " + user.getLogin() + " ~> " +msg);
+					break;
+				}
+				case BROADCAST: {
+					User user = (User) message.getPayload();
+					String msg = message.getMessage();
+					System.out.println("\n\n\t\t\t\t\t\t Broadcast Message from " + user.getLogin() + " ~> " +msg);
+					break;
+				}
+				case MATCHES: {
+					/* When server notifies the clients of new matches this case
+					 * gets hit, but there's no payload.
+					 * 
+					 * Payload could be set and and sent along with with the notify message.
+					 * Client would set a local variable with the payload.
+					 * _matches_ command would read that local variable and not hit the server everytime time.
+					 * 
+					 * *** TO CONSIDER ***
+					 */
+					
+					if (message.getPayload() != null) {
+						for (IMatch m : (List<IMatch>) message.getPayload()) {
+							System.out.println("["+ m.getCode() + "] " + m.getHomeTeam() + " vs " + m.getAwayTeam());
+						}
+					}
+					break;
+				}
+				//default: System.out.println("server sent something");
 			}
-			//default: System.out.println("server sent something");
 		}
+		
 	}
 }

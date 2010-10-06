@@ -4,11 +4,13 @@ import jsmp.dei.sd.utils.Utils.MessageCode;
 
 public class ServerMessage extends Message {
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private String message;
+	
+	public ServerMessage(MessageCode code, String message) {
+		super(code);
+		this.message = message;
+	}
 	
 	public ServerMessage(String command, String message) {
 		super(command);

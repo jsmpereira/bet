@@ -63,13 +63,16 @@ public class Database extends Thread{
 			e.printStackTrace();
 		}
 						
-		if (users.length == 1) {
+		if (users.length >= 1) {
 			users[0].setLogged_in(true);
 			users[0].setScid(scid);
 			users[0].save();
-			
+						
+			user.setLogin(users[0].getLogin());
 			user.setLoggedin(users[0].isLogged_in());
 			user.setScid(scid);
+		} else {
+			user = null;
 		}
 		return user;
 	}
@@ -239,6 +242,18 @@ public class Database extends Thread{
 		return wonBets;
 	}
 	
+	public Users findByLogin(String login) {
+		Users[] users = null;
+		try {
+			users = manager.find(Users.class, "login = ?", login);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return users.length == 1 ? users[0] : null;
+	}	
+	
 	// Private Methods
 	
 	private boolean userExists(String login) {
@@ -250,15 +265,5 @@ public class Database extends Thread{
 			return false;
 	}
 	
-	private Users findByLogin(String login) {
-		Users[] users = null;
-		try {
-			users = manager.find(Users.class, "login = ?", login);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return users.length == 1 ? users[0] : null;
-	}
+	
 }

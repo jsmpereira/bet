@@ -7,7 +7,7 @@ import java.util.UUID;
 public class Utils {
 	
 	public static enum Commands {
-		HELP, REGISTER, LOGIN, LOGOUT, CREDITS, MATCHES, RESET, BET, WHO, NIL;
+		HELP, REGISTER, LOGIN, LOGOUT, CREDITS, MATCHES, RESET, BET, WHO, MESSAGE, BROADCAST, NIL;
 		
 		public static Commands toOption(String str){
 			try {
@@ -19,7 +19,7 @@ public class Utils {
 	}
 	
 	public static enum MessageCode {
-		OK, FAIL;
+		OK, FAIL, NOTIFY, MESSAGE, BROADCAST;
 	}
 	
 	public final static int CREDITS = 100;
