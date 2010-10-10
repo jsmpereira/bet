@@ -3,7 +3,6 @@ package jsmp.dei.sd.client;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.List;
 import java.util.Vector;
 
@@ -17,13 +16,11 @@ import jsmp.dei.sd.utils.User;
 public class Reader extends Thread {
 
 	ObjectInputStream in;
-	ObjectOutputStream out;
 	Client client = null;
 	
-	public Reader(Client client, ObjectInputStream in, ObjectOutputStream out) {
+	public Reader(Client client, ObjectInputStream in) {
 		this.client = client;
 		this.in = in;
-		this.out = out;
 		this.start();
 	}
 
