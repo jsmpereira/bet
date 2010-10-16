@@ -34,4 +34,28 @@ public class Utils {
 	public static UUID generateUID() {
 		return UUID.randomUUID();
 	}
+	
+	public static void optionHelp() {
+		System.out.println(
+				"\nThis is help." +
+				"\n\nAvailable commands:" +
+				
+				"\n\n Require no authentication:" +
+				"\n\t register - create a new account" +
+				"\n\t login - enter your credentials to authenticate" +
+				
+				"\n\n Require authentication: " +
+				"\n\t credits - send a tweet" +
+				"\n\t reset - list all tweets (you + following)" +
+				"\n\t matches - list users you are following" +
+				"\n\t bet - list users that follow you" +
+				"\n\t who - follow a given user" +
+				"\n\t message - user search" +				
+				"\n\t broadcast - terminate your session" +
+				
+				"\n\n Other:" +
+				"\n\t help - print this help message" +
+				"\n\t date - print the current date and time" +
+				"\n\t quit - exit the client\n\n");
+	}
 }
