@@ -19,7 +19,7 @@ public class MatchHandler extends Thread{
 	private Hashtable<String, ServerConnection> clients;
 	private Timer timer;
 	private BetManager man;
-	private int seconds = 30; // should read from config
+	private int seconds = 30; // FIXME should read from config
 	private Database db;
 	private int round = 1;	
 	
@@ -38,7 +38,7 @@ public class MatchHandler extends Thread{
 			System.out.println(Utils.timeNow() + " ~> Round {" + round + "} New set of matches genereated.");
 			matchesAvailable(); // tell clients about new matches
 			
-			db.doCreateMatches(man, round); // push matches to the database
+			db.doCreateMatches(man, round); // FIXME maybe only latest ~> push matches to the database
 			
 			// next round up
 			man.refreshMatches();
@@ -52,15 +52,20 @@ public class MatchHandler extends Thread{
 	
 	/**
 	 * Notifies online users of new round
+	 * It makes more sense to cycle through online users and fetch
+	 * associated thread from clients list to send message.
+	 * There might be entries in the clients list that do not
+	 * correspond to online users, so sending messages would be wrong.
 	 */
 	public void matchesAvailable() {
 		Vector<User> onlineUsers = db.doGetOnlineUsers();
-		
+		               
 		if (onlineUsers.size() != 0) {
 			ServerConnection co;
-
+			
 			for (User user : onlineUsers) {
 				co = clients.get(user.getScid()); // TODO maybe raise exception to handle fake logins - scid was not renewed
+				
 				try {
 					co.out.writeObject(new ServerMessage("matches", "Round {"+round+"} has started. Place your bets."));
 					co.out.flush();
@@ -85,19 +90,5 @@ public class MatchHandler extends Thread{
 				}
 			}					
 		}
-	}
-	
-	/**
-	 * TODO
-	 * This seems like a code smell
-	 * MatchHandler is created in Server and passed the clients hash
-	 * ServerConnection is created in Server and is passed MatchHandler.
-	 * 
-	 * Should ServerConnection get clients hash from MatchHandler or should
-	 * Server pass it upon creation?
-	 * @return
-	 */
-	public Hashtable<String, ServerConnection> getClients() {
-		return this.clients;
 	}
 }

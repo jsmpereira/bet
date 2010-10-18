@@ -10,12 +10,9 @@ import pt.uc.dei.sd.IMatch;
 import jsmp.dei.sd.client.rmi.IClient;
 import jsmp.dei.sd.db.Database;
 import jsmp.dei.sd.db.Users;
-import jsmp.dei.sd.server.tcp.ServerConnection;
 import jsmp.dei.sd.utils.Bet;
 import jsmp.dei.sd.utils.ClientMessage;
-import jsmp.dei.sd.utils.ServerMessage;
 import jsmp.dei.sd.utils.User;
-import jsmp.dei.sd.utils.Utils.MessageCode;
 
 public class RMIConnectionImpl extends UnicastRemoteObject implements RMIConnection {
 
@@ -23,7 +20,7 @@ public class RMIConnectionImpl extends UnicastRemoteObject implements RMIConnect
 	private Database db;
 	private IClient client;
 	
-	protected RMIConnectionImpl(Database db) throws RemoteException {
+	public RMIConnectionImpl(Database db) throws RemoteException {
 		super();
 		this.db = db;
 	}

@@ -16,10 +16,9 @@ public class Client {
 	    private volatile Socket socket;
 	    private boolean loggedin = false;
 	    private boolean connected = false;
-	    private User user;
+	    protected User user;
 	    private Vector<Thread> thread_list = new Vector<Thread>();
-	    private Reader r;
-	    private CLI cli;
+	    protected Reader reader;
     
 	public Client(String hostname) {
 		this.hostname = hostname;
@@ -32,7 +31,7 @@ public class Client {
 			/*
 			 * Order is important. ObjectOutputStream needs to come first.
 			 * ObjectInputStream(InputStream in) will block until the corresponding ObjectOutputStream has written and flushed the header.
-			 * For some reason in the server code, seems to be indifferent. 
+			 * Basically it needs to be opposite order from server. 
 			 * @see http://www.jguru.com/faq/view.jsp?EID=333392
 			 */
 			out = new ObjectOutputStream(socket.getOutputStream());
@@ -51,12 +50,10 @@ public class Client {
 	
 	public void boot() {
 		// Start reader thread
-		if (in != null)
-			thread_list.add(r = new Reader(this));
+		reader = new Reader(this);
 	    
 	    // Start command line interface thread
-		if (out != null)
-			thread_list.add(cli = new CLI(this));
+		new CLI(this);
 	}
 	
 	public static void main(String args[]) {

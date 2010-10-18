@@ -11,7 +11,7 @@ import jsmp.dei.sd.utils.User;
 import jsmp.dei.sd.utils.Utils;
 import jsmp.dei.sd.utils.Utils.Commands;
 
-public class CLI extends Thread{
+public class CLI {
 	InputStreamReader input;
 	BufferedReader reader;
 	ObjectOutputStream out;
@@ -21,11 +21,9 @@ public class CLI extends Thread{
 	
 	public CLI(Client client) {
 		this.client = client;
-		out = client.getOut();
 		input = new InputStreamReader(System.in);
 		reader = new BufferedReader(this.input);
 		online = true;
-		this.start();
 	}
 	
 	public void run() {
@@ -54,8 +52,8 @@ public class CLI extends Thread{
 	private void parseOption(String option) throws IOException {
 		
 		if (option.equalsIgnoreCase("")) {
-			if(client.getUser() != null && client.getUser().isLoggedin())
-				System.out.print(client.getUser().getLogin() + ":");
+			if(client.user != null && client.user.isLoggedin())
+				System.out.print(client.user.getLogin() + ":");
 			System.out.print("client$ ");
 		} else {
 			
@@ -74,8 +72,8 @@ public class CLI extends Thread{
 				case REGISTER: optionRegister(option); break;
 				default: { 
 					System.out.println(option + ": command not found");
-					if (client.getUser() != null && client.getUser().isLoggedin())
-						System.out.print(client.getUser().getLogin() + ":");
+					if (client.user != null && client.user.isLoggedin())
+						System.out.print(client.user.getLogin() + ":");
 					System.out.print("client$ "); break;} 
 			}
 		}
@@ -94,9 +92,9 @@ public class CLI extends Thread{
 		System.out.print("amount: ");
 		int amount = Integer.parseInt(reader.readLine().trim());
 		
-		Bet bet = new Bet(client.getUser(), gameId, hunch, amount);
+		Bet bet = new Bet(client.user, gameId, hunch, amount);
 		
-		out.writeObject(new ClientMessage(option, bet, client.getUser().getScid()));
+		out.writeObject(new ClientMessage(option, bet, client.user.getScid()));
 	}
 	
 	/**
@@ -105,15 +103,15 @@ public class CLI extends Thread{
 	 * 
 	 */
 	private void optionResetCredits(String option) throws IOException {
-		out.writeObject(new ClientMessage(option, new User(client.getUser().getLogin())));
+		out.writeObject(new ClientMessage(option, new User(client.user.getLogin())));
 	}
 	
 	private void optionCredits(String option) throws IOException {
-		out.writeObject(new ClientMessage(option, new User(client.getUser().getLogin())));
+		out.writeObject(new ClientMessage(option, new User(client.user.getLogin())));
 	}
 	
 	private void optionWho(String option) throws IOException {
-		out.writeObject(new ClientMessage(option, new User(client.getUser().getLogin())));
+		out.writeObject(new ClientMessage(option, new User(client.user.getLogin())));
 	}
 	
 	
@@ -128,7 +126,7 @@ public class CLI extends Thread{
 	}
 	
 	private void optionLogout(String option) throws IOException {
-		out.writeObject(new ClientMessage(option, new User(client.getUser().getLogin())));
+		out.writeObject(new ClientMessage(option, new User(client.user.getLogin())));
 	}
 	
 	private void optionRegister(String option) throws IOException {
@@ -143,7 +141,7 @@ public class CLI extends Thread{
 	}
 	
 	private void optionMatches(String option) throws IOException {
-		out.writeObject(new ClientMessage(option, client.getUser().getLogin()));
+		out.writeObject(new ClientMessage(option, client.user.getLogin()));
 	}
 	
 	private void optionMessage(String option, boolean broadcast) throws IOException {
@@ -158,7 +156,7 @@ public class CLI extends Thread{
 		System.out.print("Message: ");
 		String message = reader.readLine();
 				
-		out.writeObject(new ClientMessage(option, new User(client.getUser().getLogin()), new User(target), message));
+		out.writeObject(new ClientMessage(option, new User(client.user.getLogin()), new User(target), message));
 	}
 
 	public void setOnline(boolean online) {

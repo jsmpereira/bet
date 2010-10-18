@@ -3,10 +3,9 @@ package jsmp.dei.sd.client.rmi;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 
 import jsmp.dei.sd.server.rmi.RMIConnection;
@@ -31,15 +30,12 @@ public class Client extends UnicastRemoteObject implements IClient {
 		reader = new BufferedReader(input);
 
 		try {
-			rc = (RMIConnection) Naming.lookup("XPTO");
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			rc = (RMIConnection) LocateRegistry.getRegistry(7000).lookup("rmi://localhost/rmiconnect");
 		} catch (NotBoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	
+
 		rc.subscribe("bzinga", (IClient) this);
 	}
 

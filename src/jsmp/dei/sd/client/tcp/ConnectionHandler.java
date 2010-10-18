@@ -27,25 +27,12 @@ public class ConnectionHandler extends Thread{
 				client.setSocket(new Socket(client.getHostname(), client.getServerPort()));
 				client.setOut(new ObjectOutputStream(client.getSocket().getOutputStream()));
 				client.setIn(new ObjectInputStream(client.getSocket().getInputStream()));
-				System.out.print("\n\n\t\t\t\t\t\t ... and we're back");
+				System.out.println("\n\n\t\t\t\t\t\t ... and we're back");
 								
-				for (Thread t : client.getThreadList()) {
-					// tell threads they should finish
-					if (t instanceof Reader)
-						((Reader) t).setOnline(false);
-					else
-						((CLI) t).setOnline(false);
-					// wait for them to finish
-					t.join();
+				client.reader.setOnline(false);
+				client.reader.join();
 
-					System.out.println("joined thread "+t.getName());
-				}
-				
-				client.getThreadList().removeAllElements();
-				Reader r = new Reader(client);
-				CLI cli = new CLI(client);
-				client.getThreadList().add(r);
-				client.getThreadList().add(cli);
+				System.out.println("joined thread "+client.reader.getName());
 				
 				return;
 			} catch (IOException e) {
