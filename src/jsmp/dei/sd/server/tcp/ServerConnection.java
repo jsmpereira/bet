@@ -32,6 +32,7 @@ public class ServerConnection extends Thread {
 	}
 	
 	public String getSCID() { return scid; }
+	public void setSCID(String scid) { this.scid = scid; }
 	public String getUserLogin() { return user_login; }
 	
 	public void run() {
@@ -85,65 +86,61 @@ public class ServerConnection extends Thread {
 			case LOGIN: {
 				User user = server.db.doLogin(aMessage.getUser(), scid);
 				if (user != null) {
-					out.reset();
-					out.writeObject(new ServerMessage(name, MessageCode.OK, "Login Successful.", user)); // might need out.reset()
+					send(new ServerMessage(name, MessageCode.OK, "Login Successful.", user));
 					user_login = user.getLogin();
 				} else
-					out.writeObject(new ServerMessage(name, MessageCode.FAIL, "Wrong login/password combination."));
+					send(new ServerMessage(name, MessageCode.FAIL, "Wrong login/password combination."));
 				break;
 			}
 			case REGISTER: server.db.doRegister(aMessage.getUser()); break;
 			case CREDITS: {
-				out.writeObject(new ServerMessage(name, MessageCode.OK, "You have " + server.db.doGetCredits(aMessage.getUser().getLogin()) + " credits."));
+				send(new ServerMessage(name, MessageCode.OK, "You have " + server.db.doGetCredits(aMessage.getUser().getLogin()) + " credits."));
 				break;
 			}
 			case RESET: {
-				out.writeObject(new ServerMessage(name, MessageCode.OK, "Credits reset. You have " + server.db.doUpdateCredits(aMessage.getUser().getLogin()) + " credits."));
+				send(new ServerMessage(name, MessageCode.OK, "Credits reset. You have " + server.db.doUpdateCredits(aMessage.getUser().getLogin()) + " credits."));
 				break;
 			}
 			case BET: {
 				server.db.doCreateBet(aMessage.getBet());
-				out.writeObject(new ServerMessage(name, MessageCode.OK, "Bet submitted."));
+				send(new ServerMessage(name, MessageCode.OK, "Bet submitted."));
 				break;
 			}
 			case MATCHES: {
 				Vector<IMatch> matches = server.db.doGetMatches();
-				out.reset(); // to go around object caching. Reseting the stream all the time might not be the best practice.
-				out.writeObject(new ServerMessage(name, matches)); break;
+				send(new ServerMessage(name, matches)); break;
 			}
 			case WHO: {
 				Vector<User> onlineUsers = server.db.doGetOnlineUsers();
-				out.reset();
-				out.writeObject(new ServerMessage(name, onlineUsers)); break;
+				
+				send(new ServerMessage(name, onlineUsers)); break;
 			}
 			case MESSAGE: {
 				Users user = server.db.findByLogin(aMessage.getRecipient().getLogin()); // TODO We probably don't want Users instance here, but User
-				ServerConnection co = server.clients.get(user.getScid());
-				co.out.reset();
-				co.out.writeObject(new ServerMessage(name, MessageCode.MESSAGE, aMessage.getMessage(), aMessage.getUser())); break;
+				server.send(user.getScid(), aMessage.getMessage());
+				break;
 			}
 			case BROADCAST: {
-				Vector<User> onlineUsers = server.db.doGetOnlineUsers();
-				ServerConnection co;
-				
-				for (User user : onlineUsers) {
-					co = server.clients.get(user.getScid()); // TODO maybe raise exception to handle fake logins - scid was not renewed
-					try {
-						co.out.writeObject(new ServerMessage(name, MessageCode.BROADCAST, aMessage.getMessage(), aMessage.getUser()));
-						co.out.flush();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
+				server.broadcast(aMessage.getMessage());
 				break;
 			}
 			case LOGOUT: {
 				if(server.db.doLogout(aMessage.getUser().getLogin())) {
 					server.clients.remove(aMessage.getUser().getScid()); // remove reference from clients list
-					out.writeObject(new ServerMessage(name, MessageCode.OK, "Logout Successful."));
+					send(new ServerMessage(name, MessageCode.OK, "Logout Successful."));
 				}
 			}
+		}
+	}
+	
+	public void send(ServerMessage message) {
+		try {
+			out.reset();
+			out.writeObject(message);
+			System.out.println("Sending message to {"+scid+"}");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 }

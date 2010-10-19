@@ -57,6 +57,9 @@ public class Reader extends Thread {
 		if (message.getCode() == MessageCode.NOTIFY)
 			System.out.println("\n\n\t\t\t\t\t\t FROM SERVER: " + message.getMessage());
 		else {
+			
+			System.out.println("READER READ; "+message.toString());
+			
 			switch(Commands.toOption(message.getName().toUpperCase())) {
 			
 				case LOGIN: {

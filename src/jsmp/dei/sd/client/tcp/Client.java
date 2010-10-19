@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Vector;
-
+import java.util.Enumeration;
+import java.util.Hashtable;
+import jsmp.dei.sd.utils.ClientMessage;
 import jsmp.dei.sd.utils.User;
 
 public class Client {
@@ -16,9 +17,10 @@ public class Client {
 	    private volatile Socket socket;
 	    private boolean loggedin = false;
 	    private boolean connected = false;
+	    private boolean reconnected = false;
 	    protected User user;
-	    private Vector<Thread> thread_list = new Vector<Thread>();
 	    protected Reader reader;
+		protected Hashtable<Integer, ClientMessage> messageBuffer;
     
 	public Client(String hostname) {
 		this.hostname = hostname;
@@ -53,7 +55,31 @@ public class Client {
 		reader = new Reader(this);
 	    
 	    // Start command line interface thread
-		new CLI(this);
+		new CLI(this).run();
+	}
+	
+	public void send_buffered() throws IOException {
+		if (reconnected) {
+			
+			Enumeration<ClientMessage> e = messageBuffer.elements();
+			
+			while (e.hasMoreElements()) {
+				send(e.nextElement());
+			}
+		}
+	}
+
+	public void send(ClientMessage message) throws IOException {
+		/**
+		 * Buffer message to send
+		 * 
+		 * FIXME need to choose which messages to buffer.
+		 * There will be some situations where it doesn't make send
+		 * to buffer messages. 
+		 */
+		addMessage(message);
+		//send message
+		out.writeObject(message);
 	}
 	
 	public static void main(String args[]) {
@@ -67,10 +93,14 @@ public class Client {
 		client.boot();
 	}
 
-	
-	public Vector<Thread> getThreadList() {
-		return thread_list;
+	public void addMessage(ClientMessage message) {
+		messageBuffer.put(message.getM_number(), message);
 	}
+	
+	public void removeMessage(ClientMessage message) {
+		messageBuffer.remove(message.getM_number());
+	}
+	
 	public void setLoggedin(boolean loggedin) {
 		this.loggedin = loggedin;
 	}

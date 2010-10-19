@@ -14,6 +14,7 @@ public class Message implements Serializable {
 	private MessageCode code;
 	private Object payload;
 	private String scid;
+	private int m_number;
 	
 	public Message(String name) {
 		this.name = name;
@@ -73,6 +74,12 @@ public class Message implements Serializable {
 
 	public String getScid() {
 		return scid;
+	}
+	public void setM_number(int m_number) {
+		this.m_number = m_number;
+	}
+	public int getM_number() {
+		return m_number;
 	}
 	
 }

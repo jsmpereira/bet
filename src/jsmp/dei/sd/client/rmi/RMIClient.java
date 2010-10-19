@@ -15,15 +15,16 @@ import jsmp.dei.sd.utils.User;
 import jsmp.dei.sd.utils.Utils;
 import jsmp.dei.sd.utils.Utils.Commands;
 
-public class Client extends UnicastRemoteObject implements IClient {
+public class RMIClient extends UnicastRemoteObject implements IClient {
 
 	private static final long serialVersionUID = 1L;
 	RMIConnection rc;
 	User user;
+	String scid;
 	InputStreamReader input;
 	BufferedReader reader;
 
-	protected Client() throws RemoteException {
+	protected RMIClient() throws RemoteException {
 		super();
 		
 		input = new InputStreamReader(System.in);
@@ -36,7 +37,7 @@ public class Client extends UnicastRemoteObject implements IClient {
 			e.printStackTrace();
 		}
 
-		rc.subscribe("bzinga", (IClient) this);
+		scid = rc.subscribe(this);
 	}
 
 	public void message_client(String message) throws RemoteException {
@@ -49,7 +50,7 @@ public class Client extends UnicastRemoteObject implements IClient {
 		//System.setSecurityManager(new RMISecurityManager());
  
 		try {
-			Client ci = new Client();
+			RMIClient ci = new RMIClient();
 			System.out.println("Client sent subscription to server");
 			
 			while (true) {
@@ -158,6 +159,6 @@ public class Client extends UnicastRemoteObject implements IClient {
 		System.out.println("password: ");
 		String password = reader.readLine();
 		
-		user = rc.sLogin(new ClientMessage(option, new User(login, password)));		
+		user = rc.sLogin(new ClientMessage(option, new User(login, password)), scid);		
 	}
 }

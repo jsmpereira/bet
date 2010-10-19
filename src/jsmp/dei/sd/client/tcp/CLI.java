@@ -3,8 +3,6 @@ package jsmp.dei.sd.client.tcp;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
-
 import jsmp.dei.sd.utils.Bet;
 import jsmp.dei.sd.utils.ClientMessage;
 import jsmp.dei.sd.utils.User;
@@ -14,16 +12,14 @@ import jsmp.dei.sd.utils.Utils.Commands;
 public class CLI {
 	InputStreamReader input;
 	BufferedReader reader;
-	ObjectOutputStream out;
-	private boolean online = false;
+	private boolean running;
 	Client client = null;
-	
 	
 	public CLI(Client client) {
 		this.client = client;
 		input = new InputStreamReader(System.in);
-		reader = new BufferedReader(this.input);
-		online = true;
+		reader = new BufferedReader(input);
+		running = true;
 	}
 	
 	public void run() {
@@ -32,20 +28,19 @@ public class CLI {
 		System.out.println("Type help for help.");
 		System.out.print("client$ ");
 
-		while (online) {
+		while (running) {
 			
 			try {
 				
 				parseOption(reader.readLine());
-				
 		
 			} catch (Exception e) {
 			    System.out.println("[CLI THREAD] java.net.SocketException: Broken pipe. TODO: Launch recovery thread.");
-			    new ConnectionHandler(client);
-			    //e.printStackTrace();
+			    //new ConnectionHandler(client);
+			    e.printStackTrace();
 			    //break;
 			}
-			System.out.println("CLI ONLINE? "+online);
+			System.out.println("CLI ONLINE? "+running);
 		}
 	}
 	
@@ -94,7 +89,7 @@ public class CLI {
 		
 		Bet bet = new Bet(client.user, gameId, hunch, amount);
 		
-		out.writeObject(new ClientMessage(option, bet, client.user.getScid()));
+		client.send(new ClientMessage(option, bet, client.user.getScid()));
 	}
 	
 	/**
@@ -103,15 +98,15 @@ public class CLI {
 	 * 
 	 */
 	private void optionResetCredits(String option) throws IOException {
-		out.writeObject(new ClientMessage(option, new User(client.user.getLogin())));
+		client.send(new ClientMessage(option, new User(client.user.getLogin())));
 	}
 	
 	private void optionCredits(String option) throws IOException {
-		out.writeObject(new ClientMessage(option, new User(client.user.getLogin())));
+		client.send(new ClientMessage(option, new User(client.user.getLogin())));
 	}
 	
 	private void optionWho(String option) throws IOException {
-		out.writeObject(new ClientMessage(option, new User(client.user.getLogin())));
+		client.send(new ClientMessage(option, new User(client.user.getLogin())));
 	}
 	
 	
@@ -121,12 +116,12 @@ public class CLI {
 		String login = reader.readLine();
 		System.out.println("password: ");
 		String password = reader.readLine();
-	
-		out.writeObject(new ClientMessage(option, new User(login, password)));
+		
+		client.send(new ClientMessage(option, new User(login, password)));
 	}
 	
 	private void optionLogout(String option) throws IOException {
-		out.writeObject(new ClientMessage(option, new User(client.user.getLogin())));
+		client.send(new ClientMessage(option, new User(client.user.getLogin())));
 	}
 	
 	private void optionRegister(String option) throws IOException {
@@ -137,11 +132,11 @@ public class CLI {
 		System.out.println("password: ");
 		String password = reader.readLine();
 	
-		out.writeObject(new ClientMessage(option, new User(login, email, password)));
+		client.send(new ClientMessage(option, new User(login, email, password)));
 	}
 	
 	private void optionMatches(String option) throws IOException {
-		out.writeObject(new ClientMessage(option, client.user.getLogin()));
+		client.send(new ClientMessage(option, client.user.getLogin()));
 	}
 	
 	private void optionMessage(String option, boolean broadcast) throws IOException {
@@ -156,14 +151,14 @@ public class CLI {
 		System.out.print("Message: ");
 		String message = reader.readLine();
 				
-		out.writeObject(new ClientMessage(option, new User(client.user.getLogin()), new User(target), message));
+		client.send(new ClientMessage(option, new User(client.user.getLogin()), new User(target), message));
 	}
 
-	public void setOnline(boolean online) {
-		this.online = online;
+	public void setRunning(boolean running) {
+		this.running = running;
 	}
 
-	public boolean isOnline() {
-		return online;
+	public boolean isRunning() {
+		return running;
 	}
 }

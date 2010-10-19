@@ -7,9 +7,9 @@ import java.util.Vector;
 
 import pt.uc.dei.sd.IMatch;
 
-import jsmp.dei.sd.client.rmi.IClient;
-import jsmp.dei.sd.db.Database;
+import jsmp.dei.sd.client.rmi.RMIClient;
 import jsmp.dei.sd.db.Users;
+import jsmp.dei.sd.server.tcp.Server;
 import jsmp.dei.sd.utils.Bet;
 import jsmp.dei.sd.utils.ClientMessage;
 import jsmp.dei.sd.utils.User;
@@ -17,17 +17,17 @@ import jsmp.dei.sd.utils.User;
 public class RMIConnectionImpl extends UnicastRemoteObject implements RMIConnection {
 
 	private static final long serialVersionUID = 1L;
-	private Database db;
-	private IClient client;
+	private Server server;
+	private RMIClient client;
 	
-	public RMIConnectionImpl(Database db) throws RemoteException {
+	public RMIConnectionImpl(Server server) throws RemoteException {
 		super();
-		this.db = db;
+		this.server = server;
 	}
 
-	public User sLogin(ClientMessage message) throws RemoteException {
+	public User sLogin(ClientMessage message, String scid) throws RemoteException {
 		
-		User user = db.doLogin(message.getUser(), "sad");
+		User user = server.getDB().doLogin(message.getUser(), scid);
 		if (user != null) {
 			client.message_client("Login Successful.");
 			return user;
@@ -38,26 +38,26 @@ public class RMIConnectionImpl extends UnicastRemoteObject implements RMIConnect
 	}
 	
 	public void sRegister(User user) throws RemoteException {
-		db.doRegister(user);
+		server.getDB().doRegister(user);
 		client.message_client("Registration successful");
 	}
 
 	public void sCredits(String login) throws RemoteException {
-		client.message_client("You have " + db.doGetCredits(login) + " credits.");
+		client.message_client("You have " + server.getDB().doGetCredits(login) + " credits.");
 	}
 
 	public void sReset(String login) throws RemoteException {
-		client.message_client("Credits reset. You have " + db.doUpdateCredits(login) + " credits.");
+		client.message_client("Credits reset. You have " + server.getDB().doUpdateCredits(login) + " credits.");
 	}
 
 	public void sBet(Bet bet) throws RemoteException {
-		db.doCreateBet(bet);
+		server.getDB().doCreateBet(bet);
 		client.message_client("Bet submitted successfuly.");
 	}
 
 	public void sMatches() throws RemoteException {
 		String matches_output = "";
-		Vector<IMatch> matches = db.doGetMatches();
+		Vector<IMatch> matches = server.getDB().doGetMatches();
 		if (matches != null) {
 			for (IMatch m : (List<IMatch>) matches) {
 				matches_output += "["+ m.getCode() + "] " + m.getHomeTeam() + " vs " + m.getAwayTeam()+"\n";
@@ -70,7 +70,7 @@ public class RMIConnectionImpl extends UnicastRemoteObject implements RMIConnect
 	public void sWho(String login) throws RemoteException {
 		String who_output = "";
 		
-		Vector<User> onlineUsers = db.doGetOnlineUsers();
+		Vector<User> onlineUsers = server.getDB().doGetOnlineUsers();
 		if (onlineUsers.size() != 0) {
 			who_output += "Online Users";
 			for (User user : onlineUsers) {
@@ -83,7 +83,7 @@ public class RMIConnectionImpl extends UnicastRemoteObject implements RMIConnect
 	}
 
 	public void sPrivate(String login, String target, String message) throws RemoteException {
-		Users user = db.findByLogin(target); // TODO We probably don't want Users instance here, but User
+		Users user = server.getDB().findByLogin(target); // TODO We probably don't want Users instance here, but User
 		if (user != null) {
 			//ServerConnection co = matchHandler.getClients().get(user.getScid()); // here use clients callback
 			//FIXME get target from connections list and send message through callback
@@ -95,37 +95,24 @@ public class RMIConnectionImpl extends UnicastRemoteObject implements RMIConnect
 		}
 	}
 
-	public void sPublic(String login, String message) throws RemoteException {
-		Vector<User> onlineUsers = db.doGetOnlineUsers();
+	public void sPublic(String login, String message) throws RemoteException {		
+		server.broadcast(message);
 		
-		// Clients callback here also
-		//ServerConnection co;
-		
-		for (User user : onlineUsers) {
-			
-			//FIXME on each user send message through callback
-			// user.message_client(
-			/*co = matchHandler.getClients().get(user.getScid()); // TODO maybe raise exception to handle fake logins - scid was not renewed
-			try {
-				co.out.writeObject(new ServerMessage(name, MessageCode.BROADCAST, aMessage.getMessage(), aMessage.getUser()));
-				co.out.flush();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}*/
-		}
 		client.message_client("Message broadcasted.");
 	}
 
 	public void sLogout(String login) throws RemoteException {
-		if(db.doLogout(login)) {
+		if(server.getDB().doLogout(login)) {
 			//matchHandler.getClients().remove(aMessage.getUser().getScid()); // remove reference from clients list
 			client.message_client("Logout Successful.");
 		}
 	}
 
-	public void subscribe(String name, IClient client) throws RemoteException {
-		System.out.println("Subscribed "+name);
+	public String subscribe(RMIClient client) throws RemoteException {
+		String scid = server.addClient(client);
 		this.client = client;
+		
+		System.out.println("Subscribed RMIClient: "+scid);
+		return scid;
 	}
 }

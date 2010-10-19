@@ -34,6 +34,8 @@ public class ConnectionHandler extends Thread{
 
 				System.out.println("joined thread "+client.reader.getName());
 				
+				// FIXME send buffered messages
+				
 				return;
 			} catch (IOException e) {
 				reconnect_interval *= 2;
