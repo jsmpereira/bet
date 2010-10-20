@@ -8,7 +8,6 @@ import java.util.Vector;
 import pt.uc.dei.sd.IMatch;
 
 import jsmp.dei.sd.utils.ServerMessage;
-import jsmp.dei.sd.utils.Utils;
 import jsmp.dei.sd.utils.Utils.Commands;
 import jsmp.dei.sd.utils.Utils.MessageCode;
 import jsmp.dei.sd.utils.User;
@@ -39,7 +38,7 @@ public class Reader extends Thread {
 				
 			} catch (EOFException e) {
 			    System.out.println("[READER THREAD] EOFException: Server went away. TODO: Launch recovery thread here.");
-			    new ConnectionHandler(client);
+			    new TCPConnectionHandler(client);
 			    e.printStackTrace();
 			    break;
 			} catch (IOException e) {
@@ -92,9 +91,9 @@ public class Reader extends Thread {
 					if (onlineUsers.size() != 0) {
 						System.out.println("Online Users");
 						for (User user : onlineUsers) {
-							System.out.print(user.getLogin());
+							System.out.print("\n"+user.getLogin());
 							if (user.getLogin().equalsIgnoreCase(client.getUser().getLogin()))
-								System.out.println("(this is you)");
+								System.out.print("(this is you)");
 						}
 					}
 					break;
@@ -128,9 +127,6 @@ public class Reader extends Thread {
 						}
 					}
 					break;
-				}
-				case DATE: {
-					System.out.println(Utils.timeNow()); break;
 				}
 				//default: System.out.println("server sent something");
 			}

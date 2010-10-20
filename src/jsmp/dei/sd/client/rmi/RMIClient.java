@@ -3,6 +3,7 @@ package jsmp.dei.sd.client.rmi;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -32,49 +33,75 @@ public class RMIClient extends UnicastRemoteObject implements IClient {
 
 		try {
 			rc = (RMIConnection) LocateRegistry.getRegistry(7000).lookup("rmi://localhost/rmiconnect");
+		} catch (ConnectException e) {
+			// Failure to locate the registry. The service might not running. Server might be down
+			// Try to reconnect
+			new RMIConnectionHandler(this);
+			//e.printStackTrace();
 		} catch (NotBoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		scid = rc.subscribe(this);
+		
+		if (rc != null)
+			subscribe();
 	}
-
-	public void message_client(String message) throws RemoteException {
-		System.out.println("\n\n\t\t\t\t\t\t "+message);
+	
+	protected void subscribe() {
+		try {
+			scid = rc.subscribe((IClient) this);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			System.out.println("Oops. Subscribe");
+			e.printStackTrace();
+		}
+	}
+	
+	public void message_client(String message, boolean notify) throws RemoteException {
+		if (notify)
+			System.out.println("\n\n\t\t\t\t\t\t Server Message: "+message);
+		else
+			System.out.println(message);
 	}
 
 	public static void main(String args[]) {
-
+		RMIClient ci = null;
 		//System.getProperties().put("java.security.policy", "policy.all");
 		//System.setSecurityManager(new RMISecurityManager());
  
-		try {
-			RMIClient ci = new RMIClient();
-			System.out.println("Client sent subscription to server");
+		try {			
+			System.out.println("Welcome.");
+			System.out.println("Type help for help.");
+			System.out.print("RMIclient$ ");
 			
+			 ci = new RMIClient();
+
 			while (true) {
 				
 				ci.parseOption(ci.reader.readLine());
 			
 			}
 
-		} catch (Exception e) {
-			System.out.println("Exception in main: " + e);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		
+		System.out.println("I'm way out of the while loop");
 
 	}
 
-	private void parseOption(String option) throws RemoteException, IOException {
+	private void parseOption(String option) throws IOException {
 		
 		if (option.equalsIgnoreCase("")) {
 			if(user != null && user.isLoggedin())
 				System.out.print(user.getLogin() + ":");
-			System.out.print("client$ ");
+			System.out.print("RMIclient$ ");
 		} else {
 			
-			switch (Commands.toOption(option.toUpperCase())) {
-			
+			try {
+				switch (Commands.toOption(option.toUpperCase())) {
+				
 				case HELP: Utils.optionHelp(); break;
 				case LOGIN: optionLogin(option); break;
 				case LOGOUT: optionLogout(); break;
@@ -91,6 +118,11 @@ public class RMIClient extends UnicastRemoteObject implements IClient {
 					if (user != null && user.isLoggedin())
 						System.out.print(user.getLogin() + ":");
 					System.out.print("client$ "); break;} 
+				}
+			} catch (RemoteException e) {
+					// Server has gone away, try to reconnect
+					new RMIConnectionHandler(this);
+					//e.printStackTrace();
 			}
 		}
 	}

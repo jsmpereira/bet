@@ -29,7 +29,6 @@ public class Client {
 		try {
 			
 			socket = new Socket(hostname, serverPort);
-			System.out.println("SOCKET=" + socket);
 			connected = true;
 
 			/*
@@ -43,8 +42,7 @@ public class Client {
 			in = new ObjectInputStream(socket.getInputStream());
 			
 		} catch (java.net.ConnectException e) {
-			System.out.println("!WARNING! At the moment there is no connection to the Server.");
-			new ConnectionHandler(this);
+			new TCPConnectionHandler(this);
 		}
 		catch (IOException e) {
 			// TODO Auto-generated catch block

@@ -64,6 +64,8 @@ public class CLI {
 				case MESSAGE: optionMessage(option, false); break;
 				case BROADCAST: optionMessage(option, true); break;
 				case REGISTER: optionRegister(option); break;
+				case DATE: {System.out.println(Utils.timeNow()); break;
+				}
 				default: { 
 					System.out.println(option + ": command not found");
 					if (client.user != null && client.user.isLoggedin())

@@ -3,7 +3,7 @@ package jsmp.dei.sd.server.rmi;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-import jsmp.dei.sd.client.rmi.RMIClient;
+import jsmp.dei.sd.client.rmi.IClient;
 import jsmp.dei.sd.utils.Bet;
 import jsmp.dei.sd.utils.ClientMessage;
 import jsmp.dei.sd.utils.User;
@@ -21,6 +21,6 @@ public interface RMIConnection extends Remote {
 	public void sPublic(String login, String message) throws RemoteException;
 	public void sLogout(String string) throws RemoteException;
 	
-	public String subscribe(RMIClient client) throws RemoteException;
+	public String subscribe(IClient client) throws RemoteException;
 	
 }

@@ -10,7 +10,7 @@ import java.rmi.registry.Registry;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import jsmp.dei.sd.client.rmi.RMIClient;
+import jsmp.dei.sd.client.rmi.IClient;
 import jsmp.dei.sd.db.Database;
 import jsmp.dei.sd.server.rmi.RMIConnection;
 import jsmp.dei.sd.server.rmi.RMIConnectionImpl;
@@ -123,9 +123,9 @@ public class Server {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-			} else if(co instanceof RMIClient) {
+			} else if(co instanceof IClient) {
 				try {
-					((RMIClient) co).message_client(message);
+					((IClient) co).message_client(message, true);
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

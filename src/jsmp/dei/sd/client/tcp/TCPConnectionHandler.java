@@ -5,15 +5,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-public class ConnectionHandler extends Thread{
+import jsmp.dei.sd.utils.ConnectionHandler;
+
+public class TCPConnectionHandler extends ConnectionHandler {
 		
-	private final int MAX_ATTEMPTS = 5;
-	private int seconds = 5;
-	private int reconnect_interval = 1;
-	private int reconnection_attempts = 0;
 	private Client client;
 
-	public ConnectionHandler(Client client) {
+	public TCPConnectionHandler(Client client) {
 		this.client = client;
 	    this.start();
 	}

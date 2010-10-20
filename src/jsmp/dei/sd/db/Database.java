@@ -112,7 +112,7 @@ public class Database extends Thread{
 		Users[] users = null;
 		Vector<User> onlineUsers = new Vector<User>();
 		try {
-			users = manager.find(Users.class, "logged_in = ?", true);
+			users = manager.find(Users.class, "logged_in = ? AND scid IS NOT NULL", true);
 		} catch (SQLException e) {
 			//FIXME throw custom DatabaseException
 		}

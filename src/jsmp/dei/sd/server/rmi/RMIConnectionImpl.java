@@ -7,7 +7,7 @@ import java.util.Vector;
 
 import pt.uc.dei.sd.IMatch;
 
-import jsmp.dei.sd.client.rmi.RMIClient;
+import jsmp.dei.sd.client.rmi.IClient;
 import jsmp.dei.sd.db.Users;
 import jsmp.dei.sd.server.tcp.Server;
 import jsmp.dei.sd.utils.Bet;
@@ -18,7 +18,7 @@ public class RMIConnectionImpl extends UnicastRemoteObject implements RMIConnect
 
 	private static final long serialVersionUID = 1L;
 	private Server server;
-	private RMIClient client;
+	private IClient client;
 	
 	public RMIConnectionImpl(Server server) throws RemoteException {
 		super();
@@ -29,30 +29,33 @@ public class RMIConnectionImpl extends UnicastRemoteObject implements RMIConnect
 		
 		User user = server.getDB().doLogin(message.getUser(), scid);
 		if (user != null) {
-			client.message_client("Login Successful.");
+			client.message_client("Login Successful.", true);
 			return user;
 		} else {
-			client.message_client("Wrong login/password combination.");
+			client.message_client("Wrong login/password combination.", true);
 			return null;
 		}
 	}
 	
 	public void sRegister(User user) throws RemoteException {
 		server.getDB().doRegister(user);
-		client.message_client("Registration successful");
+		client.message_client("Registration successful", true);
 	}
 
 	public void sCredits(String login) throws RemoteException {
-		client.message_client("You have " + server.getDB().doGetCredits(login) + " credits.");
+		client.message_client("You have " + server.getDB().doGetCredits(login) + " credits.", true);
 	}
 
 	public void sReset(String login) throws RemoteException {
-		client.message_client("Credits reset. You have " + server.getDB().doUpdateCredits(login) + " credits.");
+		client.message_client("Credits reset. You have " + server.getDB().doUpdateCredits(login) + " credits.", true);
 	}
 
 	public void sBet(Bet bet) throws RemoteException {
-		server.getDB().doCreateBet(bet);
-		client.message_client("Bet submitted successfuly.");
+				
+		if (server.getDB().doCreateBet(bet))
+			client.message_client("Bet submitted successfuly.", true);
+		else
+			client.message_client("Incorrect Game ID for current round", true);
 	}
 
 	public void sMatches() throws RemoteException {
@@ -63,7 +66,7 @@ public class RMIConnectionImpl extends UnicastRemoteObject implements RMIConnect
 				matches_output += "["+ m.getCode() + "] " + m.getHomeTeam() + " vs " + m.getAwayTeam()+"\n";
 			}
 		}
-		client.message_client(matches_output);
+		client.message_client(matches_output, false);
 	}
 
 	// FIXME build a single message to send instead of multiple calls to the client callback
@@ -79,7 +82,7 @@ public class RMIConnectionImpl extends UnicastRemoteObject implements RMIConnect
 					who_output += "(this is you)";
 			}
 		}
-		client.message_client(who_output);
+		client.message_client(who_output, false);
 	}
 
 	public void sPrivate(String login, String target, String message) throws RemoteException {
@@ -89,30 +92,31 @@ public class RMIConnectionImpl extends UnicastRemoteObject implements RMIConnect
 			//FIXME get target from connections list and send message through callback
 			//target.message_client(login + " says: "+message);
 			
-			client.message_client("Message sento to "+target);	
+			client.message_client("Message sento to "+target, true);	
 		} else {
-			client.message_client("User not found.");
+			client.message_client("User not found.", true);
 		}
 	}
 
 	public void sPublic(String login, String message) throws RemoteException {		
 		server.broadcast(message);
 		
-		client.message_client("Message broadcasted.");
+		//client.message_client("Message broadcasted.", true);
 	}
 
 	public void sLogout(String login) throws RemoteException {
 		if(server.getDB().doLogout(login)) {
 			//matchHandler.getClients().remove(aMessage.getUser().getScid()); // remove reference from clients list
-			client.message_client("Logout Successful.");
+			client.message_client("Logout Successful.", true);
 		}
 	}
 
-	public String subscribe(RMIClient client) throws RemoteException {
+	public String subscribe(IClient client) throws RemoteException {
 		String scid = server.addClient(client);
 		this.client = client;
 		
 		System.out.println("Subscribed RMIClient: "+scid);
+		client.message_client("At your disposal", true);
 		return scid;
 	}
 }
