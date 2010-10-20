@@ -12,6 +12,7 @@ import java.util.Vector;
 
 import jsmp.dei.sd.client.rmi.IClient;
 import jsmp.dei.sd.db.Database;
+import jsmp.dei.sd.server.failover.Heartbeat;
 import jsmp.dei.sd.server.rmi.RMIConnection;
 import jsmp.dei.sd.server.rmi.RMIConnectionImpl;
 import jsmp.dei.sd.utils.ServerMessage;
@@ -23,14 +24,27 @@ public class Server {
 
 	protected Hashtable<String, Object> clients;
 	protected MatchHandler matchHandler;
-	private int serverPort = 6000; // FIXME move this to config
+	private int serverPort;
+	public int alivePort;
+	public int sAlivePort;
+	public int registryPort;
 	private ServerSocket listenSocket;
 	protected Database db;
+	public String role;
 	
-	public Server() {
+	public Server(int serverPort, int registryPort, int alivePort) {
+		if (serverPort == 6000) {
+			role = "primary";
+			sAlivePort = 7777;
+		} else {
+			role = "secondary";
+			sAlivePort = 6666;
+		}
+		this.serverPort = serverPort;
+		this.registryPort = registryPort;
+		this.alivePort = alivePort;
 		clients = new Hashtable<String, Object>();
-		db = new Database(); // start db thread
-		matchHandler = new MatchHandler(this); // start matchHandler, where periodic job resides
+		new Heartbeat(this);
 	}
 	
 	public Database getDB() {
@@ -40,6 +54,8 @@ public class Server {
 	public void boot() {
 		bootRMI();
 		bootTCP();
+		db = new Database(); // start db thread
+		matchHandler = new MatchHandler(this); // start matchHandler, where periodic job resides
 	}
 	
 	private void bootTCP() {
@@ -47,6 +63,7 @@ public class Server {
 
 			listenSocket = new ServerSocket(serverPort);
 			System.out.println("TCP Server ready.");
+			System.out.println("Heartbeat at "+alivePort);
 			System.out.println("LISTEN SOCKET="+listenSocket);
 			
 			while(true) {
@@ -67,7 +84,7 @@ public class Server {
 	private void bootRMI() {
 		try {
 			RMIConnection rc = new RMIConnectionImpl(this);
-			Registry r = LocateRegistry.createRegistry(7000);
+			Registry r = LocateRegistry.createRegistry(registryPort);
 			r.rebind("rmi://localhost/rmiconnect", rc);
 		} catch (AccessException e1) {
 			// TODO Auto-generated catch block
@@ -135,8 +152,12 @@ public class Server {
 	}
 	
 	public static void main(String args[]) {
-		Server server = new Server();
-		server.boot();
+		Server server = new Server(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+		
+		if (server.role == "primary")
+			server.boot();
+		else
+			System.out.println("Secondary server idleing");
 	}
 }
 
