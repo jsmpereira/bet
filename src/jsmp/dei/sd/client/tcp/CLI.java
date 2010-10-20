@@ -40,7 +40,6 @@ public class CLI {
 			    e.printStackTrace();
 			    //break;
 			}
-			System.out.println("CLI ONLINE? "+running);
 		}
 	}
 	

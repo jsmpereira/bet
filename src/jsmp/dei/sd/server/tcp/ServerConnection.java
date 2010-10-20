@@ -40,7 +40,7 @@ public class ServerConnection extends Thread {
 		Message message; // class to handle commands
 		
 		try {
-			out.writeObject(new ServerMessage(MessageCode.NOTIFY, "Welcome."));
+			out.writeObject(new ServerMessage(MessageCode.NOTIFY, "At your disposal."));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -94,16 +94,18 @@ public class ServerConnection extends Thread {
 			}
 			case REGISTER: server.db.doRegister(aMessage.getUser()); break;
 			case CREDITS: {
-				send(new ServerMessage(name, MessageCode.OK, "You have " + server.db.doGetCredits(aMessage.getUser().getLogin()) + " credits."));
+				send(new ServerMessage(name, MessageCode.NOTIFY, "You have " + server.db.doGetCredits(aMessage.getUser().getLogin()) + " credits."));
 				break;
 			}
 			case RESET: {
-				send(new ServerMessage(name, MessageCode.OK, "Credits reset. You have " + server.db.doUpdateCredits(aMessage.getUser().getLogin()) + " credits."));
+				send(new ServerMessage(name, MessageCode.NOTIFY, "Credits reset. You have " + server.db.doUpdateCredits(aMessage.getUser().getLogin()) + " credits."));
 				break;
 			}
 			case BET: {
-				server.db.doCreateBet(aMessage.getBet());
-				send(new ServerMessage(name, MessageCode.OK, "Bet submitted."));
+				if (server.db.doCreateBet(aMessage.getBet()))
+					send(new ServerMessage(name, MessageCode.OK, "Bet submitted."));
+				else
+					send(new ServerMessage(name, MessageCode.FAIL, "Incorrect Game ID for current round."));
 				break;
 			}
 			case MATCHES: {

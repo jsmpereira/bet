@@ -18,12 +18,14 @@ public class Client {
 	    private boolean loggedin = false;
 	    private boolean connected = false;
 	    private boolean reconnected = false;
+	    private int message_counter = 0;
 	    protected User user;
 	    protected Reader reader;
 		protected Hashtable<Integer, ClientMessage> messageBuffer;
     
 	public Client(String hostname) {
 		this.hostname = hostname;
+		messageBuffer = new Hashtable<Integer, ClientMessage>();
 		try {
 			
 			socket = new Socket(hostname, serverPort);
@@ -41,7 +43,8 @@ public class Client {
 			in = new ObjectInputStream(socket.getInputStream());
 			
 		} catch (java.net.ConnectException e) {
-			System.out.println("Server is not running.");
+			System.out.println("!WARNING! At the moment there is no connection to the Server.");
+			new ConnectionHandler(this);
 		}
 		catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -51,13 +54,23 @@ public class Client {
 	}
 	
 	public void boot() {
-		// Start reader thread
-		reader = new Reader(this);
+		// Start reader thread if there is a connection to the server
+		if (in != null) {
+			reader = new Reader(this);
+		}
 	    
-	    // Start command line interface thread
+	    // Start command line interface
 		new CLI(this).run();
 	}
 	
+	public void reboot() {
+		reader = new Reader(this);
+	}
+	
+	/**
+	 * In case of reconnection
+	 * @throws IOException
+	 */
 	public void send_buffered() throws IOException {
 		if (reconnected) {
 			
@@ -74,12 +87,13 @@ public class Client {
 		 * Buffer message to send
 		 * 
 		 * FIXME need to choose which messages to buffer.
-		 * There will be some situations where it doesn't make send
+		 * There will be some situations where it doesn't make sense
 		 * to buffer messages. 
 		 */
 		addMessage(message);
+		System.out.println("Sending message #"+message.getM_number());
 		//send message
-		out.writeObject(message);
+		out.writeObject(message);	
 	}
 	
 	public static void main(String args[]) {
@@ -94,7 +108,12 @@ public class Client {
 	}
 
 	public void addMessage(ClientMessage message) {
-		messageBuffer.put(message.getM_number(), message);
+		
+		// no duplicates
+		if(!messageBuffer.contains(message)) {
+			message.setM_number(message_counter++);
+			messageBuffer.put(message.getM_number(), message);
+		}
 	}
 	
 	public void removeMessage(ClientMessage message) {
@@ -159,6 +178,14 @@ public class Client {
 
 	public boolean isConnected() {
 		return connected;
+	}
+
+	public void setMessage_counter(int message_counter) {
+		this.message_counter = message_counter;
+	}
+
+	public int getMessage_counter() {
+		return message_counter;
 	}
 
 }

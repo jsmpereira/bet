@@ -29,12 +29,20 @@ public class ConnectionHandler extends Thread{
 				client.setIn(new ObjectInputStream(client.getSocket().getInputStream()));
 				System.out.println("\n\n\t\t\t\t\t\t ... and we're back");
 								
-				client.reader.setOnline(false);
-				client.reader.join();
-
-				System.out.println("joined thread "+client.reader.getName());
+				/*
+				 *  Wait for old reader thread to finish if there was one running
+				 *  On the situation where the server is down when the client runs,
+				 *  the Reader thread is not launched, hence the check here.
+				 */
 				
-				// FIXME send buffered messages
+				if (client.reader != null) {
+					client.reader.setOnline(false);
+					client.reader.join();
+					System.out.println("joined thread "+client.reader.getName());
+				}
+				
+				// FIXME send buffered messages and get new Reader thread running
+				client.reboot();
 				
 				return;
 			} catch (IOException e) {

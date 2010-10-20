@@ -1,6 +1,7 @@
 package jsmp.dei.sd.db;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import pt.uc.dei.sd.BetManager;
@@ -25,8 +26,10 @@ public class Database extends Thread{
 		try {
 			manager.migrate(Users.class, Matches.class, Bets.class);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// No database, no game
+			System.out.println("Oops. Database init failed. Is the db process running?");
+			System.out.println("A working db connection is needed. Shutting down...");
+			System.exit(-1);
 		}
 		this.start();
 	}
@@ -111,17 +114,17 @@ public class Database extends Thread{
 		try {
 			users = manager.find(Users.class, "logged_in = ?", true);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//FIXME throw custom DatabaseException
 		}
 		
 		// We do this conversion so that Database Entity Users class is not exposed to the client
-		for(Users user : users) {
-			User on = new User(user.getLogin());
-			on.setScid(user.getScid());
-			onlineUsers.add(on);
+		if (users != null) {
+			for(Users user : users) {
+				User on = new User(user.getLogin());
+				on.setScid(user.getScid());
+				onlineUsers.add(on);
+			}
 		}
-		
 		return onlineUsers;
 	}
 	
@@ -163,7 +166,25 @@ public class Database extends Thread{
 		}	
 	}
 	
-	public void doCreateBet(Bet bet) {
+	public boolean doCreateBet(Bet bet) {
+		Matches[] matches = null;
+		/*
+		 * Validate bet - check to see if the match belongs to latest round
+		 * If not, bet was late or had wrong game_id(code). 
+		 */
+		
+		try {
+			matches = manager.findWithSQL(Matches.class, "id", "SELECT id, code FROM matches WHERE round = (SELECT max(round) from matches) HAVING code = ?", bet.getGame_id());
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		// no Match found on current round with supplied ID
+		if (matches.length == 0) {
+			return false;
+		}
+		
 		try {
 			manager.create(Bets.class,
 					new DBParam("submitter", bet.getSubmitter().getLogin()),
@@ -177,11 +198,13 @@ public class Database extends Thread{
 			user.setCredits(user.getCredits() - 
 					bet.getAmount());
 			user.save();
+			return true;
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return false;
 	}
 	
 	/**
@@ -189,10 +212,12 @@ public class Database extends Thread{
 	 * 
 	 * @param round
 	 */
-	public Vector<Bet> checkRoundResults(int round) {
+	public ArrayList<Vector<Bet>> checkRoundResults(int round) {
 		Matches[] matches = null;
 		Bets[] bets = null;
+		ArrayList<Vector<Bet>> wonAndLost = new ArrayList<Vector<Bet>>(); // oh multiple return values where art thou? 
 		Vector<Bet> wonBets = new Vector<Bet>();
+		Vector<Bet> lostBets = new Vector<Bet>();
 		
 		try {
 			matches = manager.find(Matches.class, "round = ?", round);
@@ -230,6 +255,16 @@ public class Database extends Thread{
 						
 							System.out.println("WON ~> " + b.getSubmitter() + " on Round " + m.getRound() + ", game " + m.getCode() + " RES: " + m.getResult());
 						} else {
+							Users user = findByLogin(b.getSubmitter());
+							
+							User submitter = new User(user.getLogin());
+							submitter.setScid(user.getScid());
+							
+							Bet lost = new Bet(submitter, b.getGame_id(), b.getAmount());
+							lost.setMatch(new Match(b.getGame_id(), m.getHome(), m.getAway()));
+							lost.setRound(m.getRound());
+							lostBets.add(lost);
+							
 							System.out.println("LOST ~> " + b.getSubmitter() + " on Round " + m.getRound() + ", game " + m.getCode() + " RES: " + b.getBet() + "/" + m.getResult());
 						}
 					}
@@ -239,7 +274,9 @@ public class Database extends Thread{
 				e.printStackTrace();
 			}
 		}
-		return wonBets;
+		wonAndLost.add(wonBets);
+		wonAndLost.add(lostBets);
+		return wonAndLost;
 	}
 	
 	public Users findByLogin(String login) {

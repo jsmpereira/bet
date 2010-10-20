@@ -8,6 +8,7 @@ import java.util.Vector;
 import pt.uc.dei.sd.IMatch;
 
 import jsmp.dei.sd.utils.ServerMessage;
+import jsmp.dei.sd.utils.Utils;
 import jsmp.dei.sd.utils.Utils.Commands;
 import jsmp.dei.sd.utils.Utils.MessageCode;
 import jsmp.dei.sd.utils.User;
@@ -47,8 +48,13 @@ public class Reader extends Thread {
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (NullPointerException e) {
+				/*
+				 *  Nullpointer on ObjectInputStream, server is not present.
+				 *  This should never be hit, as there is no need to launch
+				 *  the Reader thread unless there is a connection established.
+				 */
 			}
-			System.out.println("READER ONLINE? "+online);
 		}
 	}
 	
@@ -76,7 +82,10 @@ public class Reader extends Thread {
 					System.out.println("\n\n\t\t\t\t\t\t FROM SERVER: " + message.getMessage());
 					break;	
 				}
-				case BET: break; // NOOP
+				case BET: {
+					System.out.println("\n\n\t\t\t\t\t\t FROM SERVER: " + message.getMessage());
+					break;
+				}
 				case WHO: {
 					Vector<User> onlineUsers = (Vector<User>) message.getPayload();
 				
@@ -119,6 +128,9 @@ public class Reader extends Thread {
 						}
 					}
 					break;
+				}
+				case DATE: {
+					System.out.println(Utils.timeNow()); break;
 				}
 				//default: System.out.println("server sent something");
 			}

@@ -1,5 +1,6 @@
 package jsmp.dei.sd.server.tcp;
 
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -51,7 +52,9 @@ public class MatchHandler extends Thread{
 	}
 	
 	public void checkRoundResults(int round) {
-		Vector<Bet> wonBets = server.db.checkRoundResults(round);
+		ArrayList<Vector<Bet>> wonAndLost = server.db.checkRoundResults(round); 
+		Vector<Bet> wonBets = wonAndLost.get(0);
+		Vector<Bet> lostBets = wonAndLost.get(1);
 		
 		if (wonBets.size() != 0) {
 			for(Bet bet : wonBets) {
@@ -59,5 +62,16 @@ public class MatchHandler extends Thread{
 				server.send(bet.getSubmitter().getScid(), message);
 			}
 		}
+		
+		if (lostBets.size() != 0) {
+			for(Bet bet : lostBets) {
+				String message = "Round {" + bet.getRound() + "} results: LOST " + bet.getAmount() + " credits on game " + bet.getMatch().toString();
+				server.send(bet.getSubmitter().getScid(), message);
+			}
+		}
+	}
+	
+	public int getRound() {
+		return round;
 	}
 }
