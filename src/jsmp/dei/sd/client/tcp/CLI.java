@@ -36,8 +36,9 @@ public class CLI {
 		
 			} catch (Exception e) {
 			    System.out.println("[CLI THREAD] java.net.SocketException: Broken pipe. TODO: Launch recovery thread.");
-			    //new ConnectionHandler(client);
-			    e.printStackTrace();
+			    client.setConnected(false);
+			    new TCPConnectionHandler(client);
+			    //e.printStackTrace();
 			    //break;
 			}
 		}

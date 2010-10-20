@@ -36,7 +36,7 @@ public class TCPConnectionHandler extends ConnectionHandler {
 				if (client.reader != null) {
 					client.reader.setOnline(false);
 					client.reader.join();
-					System.out.println("joined thread "+client.reader.getName());
+					//System.out.println("joined thread "+client.reader.getName());
 				}
 				
 				// FIXME send buffered messages and get new Reader thread running

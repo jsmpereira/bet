@@ -38,8 +38,9 @@ public class Reader extends Thread {
 				
 			} catch (EOFException e) {
 			    System.out.println("[READER THREAD] EOFException: Server went away. TODO: Launch recovery thread here.");
-			    new TCPConnectionHandler(client);
-			    e.printStackTrace();
+			    // We can let this fail silently. The CLI will take care of reconnection if need be
+			    //new TCPConnectionHandler(client);
+			    //e.printStackTrace();
 			    break;
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -59,12 +60,14 @@ public class Reader extends Thread {
 	
 	@SuppressWarnings("unchecked")
 	private void parseMessages(ServerMessage message) {
+		
+		// check reply message id against buffered messages and purge accordingly
+		
+		client.removeBufferedMessage(message.getM_number());
+				
 		if (message.getCode() == MessageCode.NOTIFY)
 			System.out.println("\n\n\t\t\t\t\t\t FROM SERVER: " + message.getMessage());
-		else {
-			
-			System.out.println("READER READ; "+message.toString());
-			
+		else {			
 			switch(Commands.toOption(message.getName().toUpperCase())) {
 			
 				case LOGIN: {

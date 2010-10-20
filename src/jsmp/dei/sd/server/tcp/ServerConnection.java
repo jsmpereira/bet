@@ -76,6 +76,7 @@ public class ServerConnection extends Thread {
 				
 		ClientMessage aMessage = (ClientMessage) message;
 		String name = aMessage.getName();
+		int message_number = aMessage.getM_number();
 		
 		System.out.print(Utils.timeNow() + " ["+this.getName()+"]");
 		if (aMessage.getUser() != null && aMessage.getUser().getLogin() != null)
@@ -86,36 +87,36 @@ public class ServerConnection extends Thread {
 			case LOGIN: {
 				User user = server.db.doLogin(aMessage.getUser(), scid);
 				if (user != null) {
-					send(new ServerMessage(name, MessageCode.OK, "Login Successful.", user));
+					send(new ServerMessage(message_number, name, MessageCode.OK, "Login Successful.", user));
 					user_login = user.getLogin();
 				} else
-					send(new ServerMessage(name, MessageCode.FAIL, "Wrong login/password combination."));
+					send(new ServerMessage(message_number, name, MessageCode.FAIL, "Wrong login/password combination."));
 				break;
 			}
 			case REGISTER: server.db.doRegister(aMessage.getUser()); break;
 			case CREDITS: {
-				send(new ServerMessage(name, MessageCode.NOTIFY, "You have " + server.db.doGetCredits(aMessage.getUser().getLogin()) + " credits."));
+				send(new ServerMessage(message_number, name, MessageCode.NOTIFY, "You have " + server.db.doGetCredits(aMessage.getUser().getLogin()) + " credits."));
 				break;
 			}
 			case RESET: {
-				send(new ServerMessage(name, MessageCode.NOTIFY, "Credits reset. You have " + server.db.doUpdateCredits(aMessage.getUser().getLogin()) + " credits."));
+				send(new ServerMessage(message_number, name, MessageCode.NOTIFY, "Credits reset. You have " + server.db.doUpdateCredits(aMessage.getUser().getLogin()) + " credits."));
 				break;
 			}
 			case BET: {
 				if (server.db.doCreateBet(aMessage.getBet()))
-					send(new ServerMessage(name, MessageCode.OK, "Bet submitted."));
+					send(new ServerMessage(message_number, name, MessageCode.OK, "Bet submitted."));
 				else
-					send(new ServerMessage(name, MessageCode.FAIL, "Incorrect Game ID for current round."));
+					send(new ServerMessage(message_number, name, MessageCode.FAIL, "Incorrect Game ID for current round."));
 				break;
 			}
 			case MATCHES: {
 				Vector<IMatch> matches = server.db.doGetMatches();
-				send(new ServerMessage(name, matches)); break;
+				send(new ServerMessage(message_number, name, matches)); break;
 			}
 			case WHO: {
 				Vector<User> onlineUsers = server.db.doGetOnlineUsers();
 				
-				send(new ServerMessage(name, onlineUsers)); break;
+				send(new ServerMessage(message_number, name, onlineUsers)); break;
 			}
 			case MESSAGE: {
 				Users user = server.db.findByLogin(aMessage.getRecipient().getLogin()); // TODO We probably don't want Users instance here, but User
@@ -129,7 +130,7 @@ public class ServerConnection extends Thread {
 			case LOGOUT: {
 				if(server.db.doLogout(aMessage.getUser().getLogin())) {
 					server.clients.remove(aMessage.getUser().getScid()); // remove reference from clients list
-					send(new ServerMessage(name, MessageCode.OK, "Logout Successful."));
+					send(new ServerMessage(message_number, name, MessageCode.OK, "Logout Successful."));
 				}
 			}
 		}

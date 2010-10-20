@@ -17,7 +17,6 @@ public class Client {
 	    private volatile Socket socket;
 	    private boolean loggedin = false;
 	    private boolean connected = false;
-	    private boolean reconnected = false;
 	    private int message_counter = 0;
 	    protected User user;
 	    protected Reader reader;
@@ -42,6 +41,7 @@ public class Client {
 			in = new ObjectInputStream(socket.getInputStream());
 			
 		} catch (java.net.ConnectException e) {
+			connected = false;
 			new TCPConnectionHandler(this);
 		}
 		catch (IOException e) {
@@ -61,8 +61,11 @@ public class Client {
 		new CLI(this).run();
 	}
 	
-	public void reboot() {
+	public void reboot() throws IOException {
 		reader = new Reader(this);
+
+		connected = true;
+		send_buffered();
 	}
 	
 	/**
@@ -70,7 +73,7 @@ public class Client {
 	 * @throws IOException
 	 */
 	public void send_buffered() throws IOException {
-		if (reconnected) {
+		if (connected) {
 			
 			Enumeration<ClientMessage> e = messageBuffer.elements();
 			
@@ -88,10 +91,12 @@ public class Client {
 		 * There will be some situations where it doesn't make sense
 		 * to buffer messages. 
 		 */
-		addMessage(message);
-		System.out.println("Sending message #"+message.getM_number());
-		//send message
-		out.writeObject(message);	
+		addBufferedMessage(message);
+		
+		if (connected) {
+			//send message
+			out.writeObject(message);
+		}
 	}
 	
 	public static void main(String args[]) {
@@ -105,17 +110,18 @@ public class Client {
 		client.boot();
 	}
 
-	public void addMessage(ClientMessage message) {
+	public void addBufferedMessage(ClientMessage message) {
 		
 		// no duplicates
 		if(!messageBuffer.contains(message)) {
 			message.setM_number(message_counter++);
+			System.out.println("Buffering message #"+message.getM_number());
 			messageBuffer.put(message.getM_number(), message);
 		}
 	}
 	
-	public void removeMessage(ClientMessage message) {
-		messageBuffer.remove(message.getM_number());
+	public void removeBufferedMessage(int message_number) {
+		messageBuffer.remove(message_number);
 	}
 	
 	public void setLoggedin(boolean loggedin) {

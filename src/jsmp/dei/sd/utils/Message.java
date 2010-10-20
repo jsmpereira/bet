@@ -16,6 +16,8 @@ public class Message implements Serializable {
 	private String scid;
 	private int m_number;
 	
+	public Message(){}
+	
 	public Message(String name) {
 		this.name = name;
 	}
